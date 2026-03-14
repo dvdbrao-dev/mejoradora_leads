@@ -1,0 +1,32 @@
+{
+  "record_version": "0.1",
+  "lead": {
+    "lead_id": "lead_002",
+    "created_at": "2026-03-09T12:15:00Z",
+    "source": "web_form",
+    "entity": {
+      "name": "Hotel Sierra Azul",
+      "category": "hotel",
+      "contacts": [
+        {
+          "type": "email",
+          "value": "info@sierracazul.es"
+        },
+        {
+          "type": "phone",
+          "value": "+34622222222"
+        }
+      ]
+    },
+    "signals": [
+      "high_consumption_possible",
+      "has_roof_space"
+    ],
+    "notes": "Segundo ejemplo válido."
+  },
+  "pipeline": {
+    "stage": "review",
+    "updated_at": "2026-03-09T12:15:00Z",
+    "run_id": "run_web_002"
+  }
+}

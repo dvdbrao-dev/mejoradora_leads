@@ -1,0 +1,301 @@
+{
+  "solar_plants": [
+    {
+      "name": "CS Jaen I",
+      "coordinates": {
+        "latitude": 37.787,
+        "longitude": -3.766
+      },
+      "power_kw": 102.9,
+      "surplus_percentage": 15.27
+    },
+    {
+      "name": "CS Madridejos I",
+      "coordinates": {
+        "latitude": 39.4658,
+        "longitude": -3.5354
+      },
+      "power_kw": 123.0,
+      "surplus_percentage": 43.63
+    },
+    {
+      "name": "CS Madridejos II",
+      "coordinates": {
+        "latitude": 39.4658,
+        "longitude": -3.5354
+      },
+      "power_kw": 62.0,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Montilla II",
+      "coordinates": {
+        "latitude": 37.5872,
+        "longitude": -4.6395
+      },
+      "power_kw": 129.0,
+      "surplus_percentage": 58.16
+    },
+    {
+      "name": "CS Montilla III",
+      "coordinates": {
+        "latitude": 37.5872,
+        "longitude": -4.6395
+      },
+      "power_kw": 129.0,
+      "surplus_percentage": 10.6
+    },
+    {
+      "name": "CS Torredelcampo I",
+      "coordinates": {
+        "latitude": 37.7735,
+        "longitude": -3.9038
+      },
+      "power_kw": 112.0,
+      "surplus_percentage": 80.24
+    },
+    {
+      "name": "CS Torredelcampo II",
+      "coordinates": {
+        "latitude": 37.7735,
+        "longitude": -3.9038
+      },
+      "power_kw": 77.9,
+      "surplus_percentage": 65.52
+    },
+    {
+      "name": "CS Villanueva de la Serena I",
+      "coordinates": {
+        "latitude": 38.9744,
+        "longitude": -5.8003
+      },
+      "power_kw": 113.0,
+      "surplus_percentage": 2.84
+    },
+    {
+      "name": "CS Alcàsser I",
+      "coordinates": {
+        "latitude": 39.367,
+        "longitude": -0.4449
+      },
+      "power_kw": 106.0,
+      "surplus_percentage": 71.0
+    },
+    {
+      "name": "CS Palma del Condado I",
+      "coordinates": {
+        "latitude": 37.382,
+        "longitude": -6.5518
+      },
+      "power_kw": 118.8,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Palma del Condado II",
+      "coordinates": {
+        "latitude": 37.382,
+        "longitude": -6.5518
+      },
+      "power_kw": 100.4,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Plasencia I",
+      "coordinates": {
+        "latitude": 40.0294,
+        "longitude": -6.091
+      },
+      "power_kw": 126.0,
+      "surplus_percentage": 45.88
+    },
+    {
+      "name": "CS Plasencia II",
+      "coordinates": {
+        "latitude": 40.0294,
+        "longitude": -6.091
+      },
+      "power_kw": 126.1,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Torrijos I",
+      "coordinates": {
+        "latitude": 39.8601,
+        "longitude": -4.2829
+      },
+      "power_kw": 99.71,
+      "surplus_percentage": 2.73
+    },
+    {
+      "name": "CS Torrijos II",
+      "coordinates": {
+        "latitude": 39.8601,
+        "longitude": -4.2829
+      },
+      "power_kw": 120.1,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Sevilla I",
+      "coordinates": {
+        "latitude": 37.3891,
+        "longitude": -5.9845
+      },
+      "power_kw": 140.42,
+      "surplus_percentage": 5.27
+    },
+    {
+      "name": "CS Azuqueca de Henares I",
+      "coordinates": {
+        "latitude": 40.5654,
+        "longitude": -3.2661
+      },
+      "power_kw": 118.0,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Azuqueca de Henares II",
+      "coordinates": {
+        "latitude": 40.5654,
+        "longitude": -3.2661
+      },
+      "power_kw": 117.0,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Azuqueca de Henares III",
+      "coordinates": {
+        "latitude": 40.5654,
+        "longitude": -3.2661
+      },
+      "power_kw": 117.0,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Yecla I",
+      "coordinates": {
+        "latitude": 38.6142,
+        "longitude": -1.115
+      },
+      "power_kw": 133.4,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Yecla II",
+      "coordinates": {
+        "latitude": 38.6142,
+        "longitude": -1.115
+      },
+      "power_kw": 135.1,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Yecla III",
+      "coordinates": {
+        "latitude": 38.6142,
+        "longitude": -1.115
+      },
+      "power_kw": 121.7,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Villacañas I",
+      "coordinates": {
+        "latitude": 39.6152,
+        "longitude": -3.3364
+      },
+      "power_kw": 130.5,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Sevilla II",
+      "coordinates": {
+        "latitude": 37.38,
+        "longitude": -5.95
+      },
+      "power_kw": 120.51,
+      "surplus_percentage": 1.6
+    },
+    {
+      "name": "CS Sevilla III",
+      "coordinates": {
+        "latitude": 37.38,
+        "longitude": -5.95
+      },
+      "power_kw": 121.1,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Baeza I",
+      "coordinates": {
+        "latitude": 37.9912,
+        "longitude": -3.4685
+      },
+      "power_kw": 121.68,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Baeza II",
+      "coordinates": {
+        "latitude": 37.9912,
+        "longitude": -3.4685
+      },
+      "power_kw": 129.87,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Baeza III",
+      "coordinates": {
+        "latitude": 37.9912,
+        "longitude": -3.4685
+      },
+      "power_kw": 129.87,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS La Solana I",
+      "coordinates": {
+        "latitude": 38.9423,
+        "longitude": -3.2386
+      },
+      "power_kw": 90.75,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Carmona I",
+      "coordinates": {
+        "latitude": 37.4725,
+        "longitude": -5.6416
+      },
+      "power_kw": 131.0,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Carmona II",
+      "coordinates": {
+        "latitude": 37.4725,
+        "longitude": -5.6416
+      },
+      "power_kw": 131.0,
+      "surplus_percentage": 30.0
+    },
+    {
+      "name": "CS Montilla VII",
+      "coordinates": {
+        "latitude": 37.5872,
+        "longitude": -4.6395
+      },
+      "power_kw": 111.0,
+      "surplus_percentage": 60.64
+    },
+    {
+      "name": "CS Montilla VIII",
+      "coordinates": {
+        "latitude": 37.5872,
+        "longitude": -4.6395
+      },
+      "power_kw": 111.0,
+      "surplus_percentage": 9.32
+    }
+  ]
+}

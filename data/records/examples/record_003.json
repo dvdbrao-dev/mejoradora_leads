@@ -1,0 +1,27 @@
+{
+  "record_version": "0.1",
+  "lead": {
+    "lead_id": "lead_003",
+    "created_at": "2026-03-09T12:20:00Z",
+    "source": "import_csv",
+    "entity": {
+      "name": "Cooperativa San Isidro",
+      "category": "cooperative",
+      "contacts": [
+        {
+          "type": "phone",
+          "value": "+34633333333"
+        }
+      ]
+    },
+    "signals": [
+      "multi_member_group"
+    ],
+    "notes": "Tercer ejemplo válido."
+  },
+  "pipeline": {
+    "stage": "new",
+    "updated_at": "2026-03-09T12:20:00Z",
+    "run_id": "run_import_003"
+  }
+}

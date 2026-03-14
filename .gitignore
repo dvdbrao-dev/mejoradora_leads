@@ -1,0 +1,8 @@
+runs/
+inputs/raw/
+inputs/cleaned/
+outputs/
+__pycache__/
+*.pyc
+*.env
+.env
