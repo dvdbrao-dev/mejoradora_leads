@@ -1,0 +1,25 @@
+{
+  "record_version": "0.1",
+  "lead": {
+    "lead_id": "lead_0001",
+    "created_at": "2026-03-09T12:00:00Z",
+    "source": "manual",
+    "entity": {
+      "name": "Ejemplo SL",
+      "category": "business",
+      "contacts": [
+        {
+          "type": "phone",
+          "value": "+34600000000"
+        }
+      ]
+    },
+    "signals": [],
+    "notes": "Lead de ejemplo para definir la estructura base."
+  },
+  "pipeline": {
+    "stage": "new",
+    "updated_at": "2026-03-09T12:00:00Z",
+    "run_id": "run_manual_0001"
+  }
+}

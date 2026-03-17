@@ -1,0 +1,26 @@
+{
+  "phase_id": 2,
+  "name": "data_ingestion",
+  "goal": "Descargar datos desde una fuente externa y guardarlos como JSON bruto",
+  "tasks": [
+    "crear script ingest_source.py",
+    "consultar fuente externa",
+    "descargar datos",
+    "guardar archivo JSON en data/raw"
+  ],
+  "script": "scripts/ingest_source.py",
+  "input_sources": [
+    "google_maps",
+    "web_scraping",
+    "api_publica"
+  ],
+  "output_directory": "data/raw/",
+  "expected_output_example": "data/raw/source_googlemaps_2026_03_09.json",
+  "deliverables": [
+    "script funcional de ingesta",
+    "archivo JSON descargado"
+  ],
+  "command_to_test": "python scripts/ingest_source.py",
+  "definition_of_done": "El script genera un archivo JSON nuevo en data/raw",
+  "next_phase": 3
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Message",
+  "description": "Output del agente Manolo — mensajes comerciales listos para enviar",
+  "type": "object",
+  "required": ["lead_id", "message_a", "cta", "channel"],
+  "properties": {
+    "lead_id": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "lead_name": { "type": "string" },
+    "tone_used": {
+      "type": "string",
+      "enum": ["agresivo", "consultivo", "cercano", "institucional"]
+    },
+    "message_a": { "type": "string" },
+    "message_b": { "type": "string" },
+    "cta": { "type": "string" },
+    "channel": {
+      "type": "string",
+      "enum": ["whatsapp", "email", "llamada", "visita"]
+    },
+    "char_count_a": { "type": "integer" },
+    "char_count_b": { "type": "integer" },
+    "sent": { "type": "boolean", "default": false },
+    "sent_at": { "type": "string", "format": "date-time" }
+  }
+}

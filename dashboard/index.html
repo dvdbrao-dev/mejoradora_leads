@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Openfang - Pipeline Solar</title>
+  <title>Mejoradora Granada - Leads Gen MJ Granada</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -21,9 +21,12 @@
 <body class="min-h-screen">
   <div class="max-w-7xl mx-auto px-4 py-4 md:py-6 space-y-4">
     <header class="card rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-      <div>
-        <div class="text-sky-400 font-bold tracking-wide">Openfang</div>
-        <h1 class="text-2xl font-semibold">Pipeline Solar</h1>
+      <div class="flex items-start gap-3">
+        <div class="w-11 h-11 rounded-lg bg-[#BA7517] text-white font-bold flex items-center justify-center">MJ</div>
+        <div>
+          <h1 class="text-2xl font-semibold">Mejoradora Granada</h1>
+          <p class="text-sm text-slate-300">Leads Gen MJ Granada</p>
+        </div>
       </div>
       <div class="text-sm md:text-base">
         Leads procesados hoy: <span id="todayCount" class="font-bold text-sky-300">0</span>
@@ -31,10 +34,10 @@
     </header>
 
     <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">Tier A</p><p id="tierA" class="text-2xl font-bold" style="color:#22c55e">0</p></div>
-      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">Tier B</p><p id="tierB" class="text-2xl font-bold" style="color:#eab308">0</p></div>
-      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">Descartados</p><p id="discarded" class="text-2xl font-bold" style="color:#ef4444">0</p></div>
-      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">Aprobados</p><p id="approved" class="text-2xl font-bold" style="color:#3b82f6">0</p></div>
+      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">A</p><p id="tierA" class="text-2xl font-bold" style="color:#22c55e">0</p></div>
+      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">B</p><p id="tierB" class="text-2xl font-bold" style="color:#eab308">0</p></div>
+      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">C</p><p id="tierC" class="text-2xl font-bold" style="color:#94a3b8">0</p></div>
+      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">DISCARD</p><p id="discarded" class="text-2xl font-bold" style="color:#ef4444">0</p></div>
     </section>
 
     <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -45,14 +48,14 @@
 
       <div class="card rounded-xl p-3 overflow-hidden">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Leads</h2>
+          <h2 class="font-semibold">Leads Tier A</h2>
           <span id="rowsCount" class="text-xs text-slate-400">0 resultados</span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
           <select id="filterTier" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
             <option value="all">Tier: todos</option>
-            <option value="A">Tier A</option>
+            <option value="A" selected>Tier A</option>
             <option value="B">Tier B</option>
             <option value="C">Tier C</option>
             <option value="DISCARD">Descartados</option>
@@ -65,7 +68,7 @@
           </select>
           <select id="sortBy" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
             <option value="tier">Orden: tier</option>
-            <option value="distance">Orden: distancia</option>
+            <option value="distance" selected>Orden: distancia</option>
           </select>
         </div>
 
@@ -148,6 +151,26 @@
       return `<span class="font-semibold ${cls}">${tier}</span>`;
     }
 
+    function getStat(stats, ...keys) {
+      for (const key of keys) {
+        if (stats[key] !== undefined && stats[key] !== null) return Number(stats[key]) || 0;
+      }
+      return 0;
+    }
+
+    function getLeadMessages(lead) {
+      const fromMensajes = Array.isArray(lead.mensajes) ? lead.mensajes : [];
+      const fromManolo = Array.isArray(lead.manolo) ? lead.manolo : (lead.manolo && typeof lead.manolo === 'object' ? [lead.manolo] : []);
+      const source = fromMensajes.length ? fromMensajes : fromManolo;
+      return source
+        .filter(item => item && typeof item === 'object')
+        .map(item => ({
+          variant: item.variant || '',
+          message: item.message || '',
+          cta: item.cta || '',
+        }));
+    }
+
     function statusBadge(status) {
       const map = {
         pendiente: 'bg-slate-700 text-slate-100',
@@ -181,16 +204,18 @@
       state.leads = leads;
       state.plants = plants;
 
-      document.getElementById('tierA').textContent = stats.tier_a;
-      document.getElementById('tierB').textContent = stats.tier_b;
-      document.getElementById('discarded').textContent = stats.discarded;
-      document.getElementById('approved').textContent = stats.aprobados;
+      document.getElementById('tierA').textContent = getStat(stats, 'tier_a', 'A');
+      document.getElementById('tierB').textContent = getStat(stats, 'tier_b', 'B');
+      document.getElementById('tierC').textContent = getStat(stats, 'tier_c', 'C');
+      document.getElementById('discarded').textContent = getStat(stats, 'discarded', 'DISCARD');
 
       const todayStr = new Date().toISOString().slice(0, 10);
       const todayCount = leads.filter(l => (l.started_at || '').slice(0, 10) === todayStr).length;
       document.getElementById('todayCount').textContent = todayCount;
 
       setupFilters(leads);
+      document.getElementById('filterTier').value = 'A';
+      document.getElementById('sortBy').value = 'distance';
       applyFiltersAndRender();
       renderCharts(stats);
     }
@@ -362,7 +387,7 @@
       select.value = ['pendiente', 'contactado', 'cerrado', 'no_interesa'].includes(lead.status) ? lead.status : 'pendiente';
 
       const container = document.getElementById('messagesList');
-      const messages = Array.isArray(lead.mensajes) ? lead.mensajes : [];
+      const messages = getLeadMessages(lead);
       container.innerHTML = messages.length ? '' : '<p class="text-slate-400">No hay variantes de Manolo para este lead.</p>';
 
       messages.forEach((msg, idx) => {

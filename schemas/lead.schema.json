@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lead",
+  "description": "Schema estándar de lead para Openfang",
+  "type": "object",
+  "required": ["lead_id", "lead_name", "sector", "source", "contact_status"],
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "ID único generado en intake (uuid o slug)"
+    },
+    "lead_name": {
+      "type": "string",
+      "description": "Nombre del negocio o persona"
+    },
+    "sector": {
+      "type": "string",
+      "enum": ["hostelería", "comercio", "taller", "ayuntamiento", "administración_fincas", "industria", "particular", "otro"]
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "municipality": { "type": "string" },
+        "province": { "type": "string" },
+        "address": { "type": "string" },
+        "coordinates": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lon": { "type": "number" }
+          }
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" }
+      }
+    },
+    "source": {
+      "type": "string",
+      "enum": ["google_maps", "whatsapp", "telegram", "csv", "formulario", "manual", "factura"]
+    },
+    "roof_possible": {
+      "type": "boolean",
+      "description": "¿Parece que tiene cubierta aprovechable?"
+    },
+    "energy_signal": {
+      "type": "string",
+      "enum": ["alto consumo probable", "consumo medio estimado", "bajo consumo", "desconocido"]
+    },
+    "last_invoice_available": {
+      "type": "boolean"
+    },
+    "last_invoice_kwh": {
+      "type": "number",
+      "description": "Consumo en kWh de la última factura si disponible"
+    },
+    "contact_status": {
+      "type": "string",
+      "enum": ["sin contactar", "en curso", "esperando respuesta", "cerrado_ganado", "cerrado_perdido", "descartado"]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

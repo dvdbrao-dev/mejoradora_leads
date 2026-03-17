@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Analysis",
+  "description": "Output del agente Esther tras analizar un lead",
+  "type": "object",
+  "required": ["lead_id", "tier", "priority", "recommended_action", "next_agent"],
+  "properties": {
+    "lead_id": { "type": "string" },
+    "analyzed_at": { "type": "string", "format": "date-time" },
+    "tier": { "type": "string", "enum": ["A", "B", "C"] },
+    "priority": { "type": "string", "enum": ["alta", "media", "baja"] },
+    "reason": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "missing_info": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "recommended_action": { "type": "string" },
+    "tone": {
+      "type": "string",
+      "enum": ["agresivo", "consultivo", "cercano", "institucional"]
+    },
+    "next_agent": {
+      "type": "string",
+      "enum": ["copy", "espera", "descartar"]
+    }
+  }
+}
