@@ -33,11 +33,16 @@
       </div>
     </header>
 
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <section class="grid grid-cols-2 md:grid-cols-5 gap-3">
       <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">A</p><p id="tierA" class="text-2xl font-bold" style="color:#22c55e">0</p></div>
       <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">B</p><p id="tierB" class="text-2xl font-bold" style="color:#eab308">0</p></div>
       <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">C</p><p id="tierC" class="text-2xl font-bold" style="color:#94a3b8">0</p></div>
       <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">DISCARD</p><p id="discarded" class="text-2xl font-bold" style="color:#ef4444">0</p></div>
+      <div class="card rounded-xl p-4">
+        <p class="text-xs text-slate-400">A/B Test</p>
+        <p class="text-sm"><span id="abClaude" class="font-bold text-orange-300">0</span> Claude</p>
+        <p class="text-sm"><span id="abGpt" class="font-bold text-sky-300">0</span> GPT</p>
+      </div>
     </section>
 
     <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -48,17 +53,22 @@
 
       <div class="card rounded-xl p-3 overflow-hidden">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Leads Tier A</h2>
+          <h2 class="font-semibold">Leads</h2>
           <span id="rowsCount" class="text-xs text-slate-400">0 resultados</span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
           <select id="filterTier" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
             <option value="all">Tier: todos</option>
-            <option value="A" selected>Tier A</option>
+            <option value="A">Tier A</option>
             <option value="B">Tier B</option>
             <option value="C">Tier C</option>
             <option value="DISCARD">Descartados</option>
+          </select>
+          <select id="filterModel" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
+            <option value="all">Modelo: todos</option>
+            <option value="claude">Modelo: Claude</option>
+            <option value="gpt">Modelo: GPT</option>
           </select>
           <select id="filterStatus" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
             <option value="all">Estado: todos</option>
@@ -67,8 +77,9 @@
             <option value="all">Planta: todas</option>
           </select>
           <select id="sortBy" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
+            <option value="priority" selected>Orden: prioridad contacto</option>
             <option value="tier">Orden: tier</option>
-            <option value="distance" selected>Orden: distancia</option>
+            <option value="distance">Orden: distancia</option>
           </select>
         </div>
 
@@ -79,8 +90,10 @@
                 <th class="py-2 pr-2">Nombre</th>
                 <th class="py-2 pr-2">Tier</th>
                 <th class="py-2 pr-2">Sector</th>
+                <th class="py-2 pr-2">Teléfono</th>
                 <th class="py-2 pr-2">Planta</th>
                 <th class="py-2 pr-2">Distancia</th>
+                <th class="py-2 pr-2">Modelo</th>
                 <th class="py-2 pr-2">Estado</th>
               </tr>
             </thead>
@@ -123,6 +136,10 @@
         </select>
       </div>
 
+      <div class="mb-3">
+        <span id="modalModelBadge"></span>
+      </div>
+
       <div id="messagesList" class="space-y-3"></div>
     </div>
   </div>
@@ -142,6 +159,17 @@
 
     const tierRank = { A: 0, B: 1, C: 2, DISCARD: 3 };
 
+    function normalizeModel(model) {
+      const raw = String(model || '').toLowerCase();
+      if (raw.includes('claude')) return 'claude';
+      if (raw.includes('gpt')) return 'gpt';
+      return '';
+    }
+
+    function hasPhone(lead) {
+      return String(lead.phone || '').trim().length > 0;
+    }
+
     function fmtDistance(km) {
       if (km === null || km === undefined || Number.isNaN(Number(km))) return '-';
       return `${Number(km).toFixed(2)} km`;
@@ -157,6 +185,33 @@
         if (stats[key] !== undefined && stats[key] !== null) return Number(stats[key]) || 0;
       }
       return 0;
+    }
+
+    function modelBadge(model) {
+      const normalized = normalizeModel(model);
+      if (normalized === 'claude') {
+        return '<span class="px-2 py-0.5 rounded text-xs bg-orange-700 text-orange-100">claude</span>';
+      }
+      if (normalized === 'gpt') {
+        return '<span class="px-2 py-0.5 rounded text-xs bg-blue-700 text-blue-100">gpt</span>';
+      }
+      return '<span class="px-2 py-0.5 rounded text-xs bg-slate-700 text-slate-200">n/a</span>';
+    }
+
+    function contactPriority(lead) {
+      const tier = lead.tier;
+      const phonePriority = hasPhone(lead) ? 0 : 1;
+      if (tier === 'A') return phonePriority;
+      if (tier === 'B') return 2 + phonePriority;
+      if (tier === 'C') return 4 + phonePriority;
+      return 6 + phonePriority;
+    }
+
+    function updateABTestSummary(leads) {
+      const claude = leads.filter(l => normalizeModel(l.manolo_model) === 'claude').length;
+      const gpt = leads.filter(l => normalizeModel(l.manolo_model) === 'gpt').length;
+      document.getElementById('abClaude').textContent = claude;
+      document.getElementById('abGpt').textContent = gpt;
     }
 
     function getLeadMessages(lead) {
@@ -213,10 +268,12 @@
       const todayStr = new Date().toISOString().slice(0, 10);
       const todayCount = leads.filter(l => (l.started_at || '').slice(0, 10) === todayStr).length;
       document.getElementById('todayCount').textContent = todayCount;
+      updateABTestSummary(leads);
 
       setupFilters(leads);
-      document.getElementById('filterTier').value = 'A';
-      document.getElementById('sortBy').value = 'distance';
+      document.getElementById('filterTier').value = 'all';
+      document.getElementById('filterModel').value = 'all';
+      document.getElementById('sortBy').value = 'priority';
       applyFiltersAndRender();
       renderCharts(stats);
     }
@@ -245,6 +302,7 @@
 
     function applyFiltersAndRender() {
       const tier = document.getElementById('filterTier').value;
+      const model = document.getElementById('filterModel').value;
       const status = document.getElementById('filterStatus').value;
       const plant = document.getElementById('filterPlant').value;
       const sortBy = document.getElementById('sortBy').value;
@@ -252,10 +310,17 @@
       let rows = [...state.leads];
 
       if (tier !== 'all') rows = rows.filter(l => l.tier === tier);
+      if (model !== 'all') rows = rows.filter(l => normalizeModel(l.manolo_model) === model);
       if (status !== 'all') rows = rows.filter(l => l.status === status);
       if (plant !== 'all') rows = rows.filter(l => l.plant_name === plant);
 
-      if (sortBy === 'tier') {
+      if (sortBy === 'priority') {
+        rows.sort((a, b) => {
+          const p = contactPriority(a) - contactPriority(b);
+          if (p !== 0) return p;
+          return (a.distance_km ?? 9999) - (b.distance_km ?? 9999);
+        });
+      } else if (sortBy === 'tier') {
         rows.sort((a, b) => (tierRank[a.tier] ?? 99) - (tierRank[b.tier] ?? 99));
       } else {
         rows.sort((a, b) => (a.distance_km ?? 9999) - (b.distance_km ?? 9999));
@@ -324,8 +389,10 @@
           <td class="py-2 pr-2">${lead.lead_name}</td>
           <td class="py-2 pr-2">${tierBadge(lead.tier)}</td>
           <td class="py-2 pr-2">${lead.sector || '-'}</td>
+          <td class="py-2 pr-2">${lead.phone || ''}</td>
           <td class="py-2 pr-2">${lead.plant_name || '-'}</td>
           <td class="py-2 pr-2">${fmtDistance(lead.distance_km)}</td>
+          <td class="py-2 pr-2">${modelBadge(lead.manolo_model)}</td>
           <td class="py-2 pr-2">${statusBadge(lead.status)}</td>
         `;
         tr.addEventListener('click', () => openLeadModal(lead));
@@ -383,6 +450,7 @@
       state.selectedLead = lead;
       document.getElementById('modalLeadName').textContent = lead.lead_name;
       document.getElementById('modalMeta').textContent = `${lead.tier} · ${lead.sector || '-'} · ${lead.plant_name || 'Sin planta'} · ${fmtDistance(lead.distance_km)}`;
+      document.getElementById('modalModelBadge').innerHTML = `Variantes generadas por: ${modelBadge(lead.manolo_model)}`;
 
       const select = document.getElementById('leadStatusSelect');
       select.value = ['pendiente', 'contactado', 'cerrado', 'no_interesa'].includes(lead.status) ? lead.status : 'pendiente';
@@ -437,7 +505,7 @@
     }
 
     function bindEvents() {
-      ['filterTier', 'filterStatus', 'filterPlant', 'sortBy'].forEach(id => {
+      ['filterTier', 'filterModel', 'filterStatus', 'filterPlant', 'sortBy'].forEach(id => {
         document.getElementById(id).addEventListener('change', applyFiltersAndRender);
       });
 

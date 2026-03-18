@@ -30,6 +30,11 @@ Foster's Hollywood, Five Guys, Popeyes, Vips, TGI Fridays
 
 **Grandes superficies con compras centralizadas:**
 Mercadona, Lidl, Aldi, Carrefour, Alcampo, Eroski, El Corte Inglés, Hipercor
+Decathlon, Leroy Merlin, MediaMarkt, Action, Ikea, Primark, Zara, H&M,
+Mango, Bershka, Pull&Bear, Springfield, El Ganso, Cortefiel,
+Worten, PC Componentes, Fnac, Forum Sport, Sprinter, Intersport,
+Bricomart, AKI, Bauhaus, OBI, Verdecora, Kiwoko, Tiendanimal,
+Maisons du Monde, Casa, Conforama, Brico Depôt
 
 ⚠️ EXCEPCIÓN — Dia, Consum, Spar y similares: muchos locales son franquicia
 independiente con decisión local. Si no hay indicación de sede corporativa,

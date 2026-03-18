@@ -7,8 +7,13 @@ Requiere: pip install openai
 
 import json
 import argparse
+import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Literal
+from urllib import error as urlerror
+from urllib import request as urlrequest
 
 try:
     from openai import OpenAI
@@ -23,6 +28,23 @@ OUTPUTS_DIR = BASE_DIR / "outputs"
 RUNS_DIR = BASE_DIR / "runs"
 
 OPENAI_MODEL = "gpt-4o-mini"
+CLAUDE_MODEL = "claude-sonnet-4-20250514"
+FORBIDDEN_MANOLO_PATTERNS = (
+    r"surplus(?:_pct)?",
+    r"excedent\w*",
+    r"excedente\w*",
+    r"porcent\w*",
+    r"%",
+)
+
+
+def parse_json_response(raw: str) -> dict:
+    raw = (raw or "").strip()
+    raw = raw.replace("```json", "").replace("```", "").strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as e:
+        return {"error": str(e), "raw": raw}
 
 
 def load_system_prompt(agent_name: str) -> str:
@@ -45,30 +67,112 @@ def call_openai_agent(agent_name: str, user_message: str) -> dict:
         ],
     )
     raw = response.choices[0].message.content.strip()
-    raw = raw.replace("```json", "").replace("```", "").strip()
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError as e:
-        return {"error": str(e), "raw": raw}
+    return parse_json_response(raw)
 
 
-def call_manolo_agent(agent_name: str, user_message: str) -> dict:
+def call_claude_agent(agent_name: str, user_message: str) -> dict:
     system = load_system_prompt(agent_name)
-    print("  🤖 [OpenAI] Llamando a manolo...")
-    response = openai_client.chat.completions.create(
-        model=OPENAI_MODEL,
-        max_tokens=600,
-        messages=[
-            {"role": "system", "content": system + "\n\nResponde ÚNICAMENTE con JSON válido. Sin texto adicional ni markdown."},
-            {"role": "user", "content": user_message}
-        ],
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not anthropic_api_key:
+        return {"error": "ANTHROPIC_API_KEY no definida"}
+
+    payload = {
+        "model": CLAUDE_MODEL,
+        "max_tokens": 600,
+        "system": system + "\n\nResponde ÚNICAMENTE con JSON válido. Sin texto adicional ni markdown.",
+        "messages": [{"role": "user", "content": user_message}],
+    }
+
+    req = urlrequest.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "content-type": "application/json",
+            "x-api-key": anthropic_api_key,
+            "anthropic-version": "2023-06-01",
+        },
+        method="POST",
     )
-    raw = response.choices[0].message.content.strip()
-    raw = raw.replace("```json", "").replace("```", "").strip()
+
     try:
-        return json.loads(raw)
-    except json.JSONDecodeError as e:
-        return {"error": str(e), "raw": raw}
+        with urlrequest.urlopen(req, timeout=90) as response:
+            body = response.read().decode("utf-8")
+            parsed = json.loads(body)
+    except urlerror.HTTPError as exc:
+        details = exc.read().decode("utf-8", errors="replace")
+        return {"error": f"HTTP {exc.code}", "raw": details}
+    except Exception as exc:
+        return {"error": str(exc)}
+
+    content = parsed.get("content", [])
+    text_blocks = []
+    if isinstance(content, list):
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_blocks.append(item.get("text", ""))
+
+    return parse_json_response("\n".join(text_blocks))
+
+
+def call_manolo_agent(
+    agent_name: str,
+    user_message: str,
+    tier: str,
+    model: Literal["claude", "gpt"] = "claude",
+) -> tuple[str, dict]:
+    if model == "claude":
+        print(f"  🤖 [Anthropic:{CLAUDE_MODEL}] Llamando a manolo...")
+        return "claude", call_claude_agent(agent_name, user_message)
+
+    if model == "gpt":
+        print(f"  🤖 [OpenAI:{OPENAI_MODEL}] Llamando a manolo...")
+        return "gpt", call_openai_agent(agent_name, user_message)
+
+    return model, {"error": f"Modelo inválido para Manolo: {model}", "tier": tier}
+
+
+def choose_manolo_model(tier: str) -> str:
+    return "claude" if tier == "A" else "gpt"
+
+
+def sanitize_text_for_manolo(text: str) -> str:
+    clean = text or ""
+    # Remueve porcentajes numéricos y cualquier fragmento con términos sensibles.
+    clean = re.sub(r"\b\d+(?:[.,]\d+)?\s*%", "", clean, flags=re.IGNORECASE)
+    clean = re.sub(
+        r"[^,.;:\n]*?(?:surplus_pct|surplus|excedente|15\.27|%)[^,.;:\n]*",
+        " ",
+        clean,
+        flags=re.IGNORECASE,
+    )
+    for pattern in FORBIDDEN_MANOLO_PATTERNS:
+        clean = re.sub(pattern, " ", clean, flags=re.IGNORECASE)
+    return " ".join(clean.split())
+
+
+def has_forbidden_manolo_term(text: str) -> bool:
+    return any(re.search(pattern, text or "", flags=re.IGNORECASE) for pattern in FORBIDDEN_MANOLO_PATTERNS)
+
+
+def sanitize_payload_for_manolo(value):
+    if isinstance(value, dict):
+        cleaned = {}
+        for key, item in value.items():
+            key_text = str(key)
+            if has_forbidden_manolo_term(key_text):
+                continue
+            sanitized_item = sanitize_payload_for_manolo(item)
+            if isinstance(sanitized_item, str):
+                sanitized_item = sanitized_item.strip()
+                if not sanitized_item:
+                    continue
+            cleaned[key_text] = sanitized_item
+        return cleaned
+    if isinstance(value, list):
+        return [sanitize_payload_for_manolo(item) for item in value]
+    if isinstance(value, str):
+        return sanitize_text_for_manolo(value)
+    return value
 
 
 def run_pipeline(lead: dict) -> dict:
@@ -111,14 +215,16 @@ def run_pipeline(lead: dict) -> dict:
     # Tier A: Esther + Manolo + Auditor
 
     # Paso 2: Esther coordina y genera requests para Manolo
+    esther_paco_context = sanitize_payload_for_manolo(paco_result)
+    esther_lead_context = sanitize_payload_for_manolo(lead)
     esther_msg = f"""Paco ha analizado este lead y lo clasificó como Tier {tier} 
 con confidence {confidence}.
 
 Output de Paco:
-{json.dumps(paco_result, ensure_ascii=False, indent=2)}
+{json.dumps(esther_paco_context, ensure_ascii=False, indent=2)}
 
 Lead original:
-{json.dumps(lead, ensure_ascii=False, indent=2)}
+{json.dumps(esther_lead_context, ensure_ascii=False, indent=2)}
 
 Tu trabajo: decide qué variante debe escribir Manolo 
 (anti_venta, dolor_perdida o autoridad) y por qué.
@@ -143,17 +249,21 @@ Lead:
 Datos de la planta solar más cercana:
 - Planta: {lead.get('plant_name', 'planta solar cercana')}
 - Distancia: {lead.get('distance_km', 'desconocida')} km
-- Excedente disponible: {lead.get('plant_surplus_pct', 'desconocido')}%
 - Potencia: {lead.get('plant_power_kw', 'desconocida')} kW
 
-Análisis de Paco: {paco_result.get('why', '')}
+Contexto comercial de Paco (limpio): {sanitize_text_for_manolo(str(paco_result.get('why', '')))}
 Enfoque recomendado por Esther: {esther_result.get('manolo_request', {}).get('variant', 'anti_venta') if isinstance(esther_result.get('manolo_request'), dict) else 'anti_venta'}
 
 Genera exactamente 3 variantes. JSON válido y completo."""
-    manolo_result = call_manolo_agent(
+    manolo_model = choose_manolo_model(tier)
+    run["manolo_model"] = manolo_model
+    selected_manolo_model, manolo_result = call_manolo_agent(
         "manolo",
-        manolo_msg
+        manolo_msg,
+        tier,
+        model=manolo_model,
     )
+    run["manolo_model"] = selected_manolo_model
     run["manolo"] = manolo_result
 
     # Manolo puede devolver array de variantes o un solo objeto

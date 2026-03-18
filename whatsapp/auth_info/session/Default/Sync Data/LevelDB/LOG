@@ -1,2 +1,3 @@
-2026/03/18-13:20:16.812 e40cc Creating DB /home/dvdbrao/openfang/whatsapp/auth_info/session/Default/Sync Data/LevelDB since it was missing.
-2026/03/18-13:20:16.840 e40cc Reusing MANIFEST /home/dvdbrao/openfang/whatsapp/auth_info/session/Default/Sync Data/LevelDB/MANIFEST-000001
+2026/03/18-13:48:58.297 e7aa7 Reusing MANIFEST /home/dvdbrao/openfang/whatsapp/auth_info/session/Default/Sync Data/LevelDB/MANIFEST-000001
+2026/03/18-13:48:58.297 e7aa7 Recovering log #3
+2026/03/18-13:48:58.298 e7aa7 Reusing old log /home/dvdbrao/openfang/whatsapp/auth_info/session/Default/Sync Data/LevelDB/000003.log 
