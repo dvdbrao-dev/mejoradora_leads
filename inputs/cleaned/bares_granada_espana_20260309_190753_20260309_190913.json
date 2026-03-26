@@ -1,0 +1,74 @@
+[
+  {
+    "lead_id": "bar_la_riviera_4c5eccb3",
+    "lead_name": "Bar La Riviera",
+    "sector": "otro",
+    "location": {
+      "municipality": "C. Cetti Meriem",
+      "province": "7",
+      "address": "C. Cetti Meriem, 7"
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Bar de tapas",
+    "created_at": "2026-03-09T19:09:13.953527+00:00",
+    "updated_at": "2026-03-09T19:09:13.953527+00:00"
+  },
+  {
+    "lead_id": "bar_poë_57bcd855",
+    "lead_name": "Bar Poë",
+    "sector": "otro",
+    "location": {
+      "municipality": "",
+      "province": "",
+      "address": ""
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Bar",
+    "created_at": "2026-03-09T19:09:13.953724+00:00",
+    "updated_at": "2026-03-09T19:09:13.953724+00:00"
+  },
+  {
+    "lead_id": "la_sitarilla_fd945e44",
+    "lead_name": "La Sitarilla",
+    "sector": "otro",
+    "location": {
+      "municipality": "",
+      "province": "",
+      "address": ""
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Bar de tapas",
+    "created_at": "2026-03-09T19:09:13.953758+00:00",
+    "updated_at": "2026-03-09T19:09:13.953758+00:00"
+  }
+]

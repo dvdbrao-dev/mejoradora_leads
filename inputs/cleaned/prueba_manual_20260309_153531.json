@@ -1,0 +1,26 @@
+[
+  {
+    "lead_id": "bar_el_rincón_228a3524",
+    "lead_name": "Bar El Rincón",
+    "sector": "otro",
+    "location": {
+      "municipality": "Lanjarón",
+      "province": "Granada",
+      "address": ""
+    },
+    "contact": {
+      "phone": "958111222",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "manual",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "",
+    "created_at": "2026-03-09T15:35:31.678213+00:00",
+    "updated_at": "2026-03-09T15:35:31.678213+00:00"
+  }
+]

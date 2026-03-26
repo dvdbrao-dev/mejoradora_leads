@@ -1,8 +1,11 @@
-runs/
-inputs/raw/
-inputs/cleaned/
-outputs/
+.env
 __pycache__/
 *.pyc
-*.env
-.env
+whatsapp/auth_info/
+whatsapp/.wwebjs_auth/
+whatsapp/node_modules/
+inputs/raw/
+runs/*.json
+!runs/enriched.json
+!runs/lead_status.json
+outputs/

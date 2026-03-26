@@ -1,0 +1,74 @@
+[
+  {
+    "lead_id": "bar_la_riviera_7bc52f2e",
+    "lead_name": "Bar La Riviera",
+    "sector": "otro",
+    "location": {
+      "municipality": "Bar de tapas",
+      "province": "Bar de tapas",
+      "address": "Bar de tapas"
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Bar de tapas",
+    "created_at": "2026-03-09T18:56:52.117472+00:00",
+    "updated_at": "2026-03-09T18:56:52.117472+00:00"
+  },
+  {
+    "lead_id": "la_buena_vida_09c45afd",
+    "lead_name": "La Buena Vida",
+    "sector": "otro",
+    "location": {
+      "municipality": "Bar de tapas",
+      "province": "Bar de tapas",
+      "address": "Bar de tapas"
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Bar de tapas",
+    "created_at": "2026-03-09T18:56:52.117620+00:00",
+    "updated_at": "2026-03-09T18:56:52.117620+00:00"
+  },
+  {
+    "lead_id": "bar_poë_8b066a73",
+    "lead_name": "Bar Poë",
+    "sector": "otro",
+    "location": {
+      "municipality": "Bar",
+      "province": "Bar",
+      "address": "Bar"
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Bar",
+    "created_at": "2026-03-09T18:56:52.117641+00:00",
+    "updated_at": "2026-03-09T18:56:52.117641+00:00"
+  }
+]

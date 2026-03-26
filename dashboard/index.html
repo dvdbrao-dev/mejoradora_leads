@@ -6,15 +6,13 @@
   <title>Mejoradora Granada - Leads Gen MJ Granada</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { background: #0f172a; color: #e2e8f0; }
     .card { background: #111827; border: 1px solid #1f2937; }
-    .tier-A { color: #22c55e; }
-    .tier-B { color: #eab308; }
-    .tier-C { color: #94a3b8; }
-    .tier-DISCARD { color: #ef4444; }
     #map { height: 52vh; min-height: 380px; }
   </style>
 </head>
@@ -45,12 +43,36 @@
       </div>
     </section>
 
-    <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div class="card rounded-xl p-3">
-        <h2 class="font-semibold mb-2">Mapa de Leads y Plantas</h2>
+    <section class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      <div class="card rounded-xl p-3 xl:col-span-2">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-semibold">Mapa de Leads y Plantas</h2>
+          <p class="text-xs text-slate-400">Toolbar: círculo y polígono</p>
+        </div>
         <div id="map" class="rounded-lg"></div>
       </div>
 
+      <div class="card rounded-xl p-3">
+        <h2 class="font-semibold mb-2">Zona seleccionada</h2>
+        <p id="drawInfo" class="text-sm text-slate-400 mb-3">Dibuja un círculo o polígono en el mapa.</p>
+
+        <label class="text-xs text-slate-400">Radio (km)</label>
+        <input id="customRadiusKm" type="number" min="0.1" step="0.1" value="2.0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm mb-3" />
+
+        <label class="text-xs text-slate-400">Planta (opcional)</label>
+        <select id="customPlantSelect" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm mb-3">
+          <option value="">Automática (más cercana)</option>
+        </select>
+
+        <button id="customSearchBtn" class="w-full bg-sky-700 hover:bg-sky-600 rounded px-3 py-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+          Buscar leads en esta zona
+        </button>
+        <div id="customSpinner" class="hidden text-xs text-sky-300 mt-2">Buscando leads...</div>
+        <div id="customResult" class="text-xs text-slate-300 mt-2"></div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
       <div class="card rounded-xl p-3 overflow-hidden">
         <div class="flex items-center justify-between mb-3">
           <h2 class="font-semibold">Leads</h2>
@@ -101,16 +123,20 @@
           </table>
         </div>
       </div>
-    </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div class="card rounded-xl p-4">
-        <h3 class="font-semibold mb-2">Distribución de Tiers</h3>
-        <canvas id="tierChart" height="180"></canvas>
-      </div>
-      <div class="card rounded-xl p-4">
-        <h3 class="font-semibold mb-2">Leads por Planta</h3>
-        <canvas id="plantChart" height="180"></canvas>
+      <div class="space-y-4">
+        <div class="card rounded-xl p-4">
+          <h3 class="font-semibold mb-2">Distribución de Tiers</h3>
+          <canvas id="tierChart" height="180"></canvas>
+        </div>
+        <div class="card rounded-xl p-4">
+          <h3 class="font-semibold mb-2">Leads por Planta</h3>
+          <canvas id="plantChart" height="180"></canvas>
+        </div>
+        <div class="card rounded-xl p-4">
+          <h3 class="font-semibold mb-2">Búsquedas Custom</h3>
+          <div id="customHistory" class="text-sm text-slate-300 space-y-2 max-h-52 overflow-auto"></div>
+        </div>
       </div>
     </section>
   </div>
@@ -147,12 +173,17 @@
   <script>
     const state = {
       leads: [],
+      customLeads: [],
       plants: [],
+      customSearches: [],
       filtered: [],
       selectedLead: null,
+      activeShape: null,
       map: null,
       plantLayer: null,
       leadLayer: null,
+      drawLayer: null,
+      drawControl: null,
       tierChart: null,
       plantChart: null,
     };
@@ -180,11 +211,15 @@
       return `<span class="font-semibold ${cls}">${tier}</span>`;
     }
 
-    function getStat(stats, ...keys) {
-      for (const key of keys) {
-        if (stats[key] !== undefined && stats[key] !== null) return Number(stats[key]) || 0;
-      }
-      return 0;
+    function statusBadge(status) {
+      const map = {
+        pendiente: 'bg-slate-700 text-slate-100',
+        contactado: 'bg-blue-700 text-blue-100',
+        cerrado: 'bg-green-700 text-green-100',
+        no_interesa: 'bg-rose-700 text-rose-100',
+      };
+      const cls = map[status] || 'bg-slate-700 text-slate-100';
+      return `<span class="px-2 py-0.5 rounded text-xs ${cls}">${status || 'pendiente'}</span>`;
     }
 
     function modelBadge(model) {
@@ -198,20 +233,27 @@
       return '<span class="px-2 py-0.5 rounded text-xs bg-slate-700 text-slate-200">n/a</span>';
     }
 
-    function contactPriority(lead) {
-      const tier = lead.tier;
-      const phonePriority = hasPhone(lead) ? 0 : 1;
-      if (tier === 'A') return phonePriority;
-      if (tier === 'B') return 2 + phonePriority;
-      if (tier === 'C') return 4 + phonePriority;
-      return 6 + phonePriority;
+    function hashOffset(value) {
+      let h = 0;
+      for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) >>> 0;
+      return ((h % 100) - 50) / 8000;
     }
 
-    function updateABTestSummary(leads) {
-      const claude = leads.filter(l => normalizeModel(l.manolo_model) === 'claude').length;
-      const gpt = leads.filter(l => normalizeModel(l.manolo_model) === 'gpt').length;
-      document.getElementById('abClaude').textContent = claude;
-      document.getElementById('abGpt').textContent = gpt;
+    function centroidFromPolygon(points) {
+      if (!Array.isArray(points) || points.length === 0) return { lat: 0, lng: 0 };
+      const totals = points.reduce((acc, [lat, lng]) => {
+        acc.lat += Number(lat || 0);
+        acc.lng += Number(lng || 0);
+        return acc;
+      }, { lat: 0, lng: 0 });
+      return {
+        lat: totals.lat / points.length,
+        lng: totals.lng / points.length,
+      };
+    }
+
+    function getAllLeads() {
+      return [...state.leads, ...state.customLeads];
     }
 
     function getLeadMessages(lead) {
@@ -227,60 +269,30 @@
         }));
     }
 
-    function statusBadge(status) {
-      const map = {
-        pendiente: 'bg-slate-700 text-slate-100',
-        contactado: 'bg-blue-700 text-blue-100',
-        cerrado: 'bg-green-700 text-green-100',
-        no_interesa: 'bg-rose-700 text-rose-100',
-      };
-      const cls = map[status] || 'bg-slate-700 text-slate-100';
-      return `<span class="px-2 py-0.5 rounded text-xs ${cls}">${status}</span>`;
-    }
-
-    function hashOffset(value) {
-      let h = 0;
-      for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) >>> 0;
-      return ((h % 100) - 50) / 8000;
+    function contactPriority(lead) {
+      const tier = lead.tier;
+      const phonePriority = hasPhone(lead) ? 0 : 1;
+      if (tier === 'A') return phonePriority;
+      if (tier === 'B') return 2 + phonePriority;
+      if (tier === 'C') return 4 + phonePriority;
+      return 6 + phonePriority;
     }
 
     async function fetchJSON(url, options) {
       const res = await fetch(url, options);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(body || `HTTP ${res.status}`);
+      }
       return res.json();
-    }
-
-    async function loadData() {
-      const [leads, plants, stats] = await Promise.all([
-        fetchJSON('/api/leads'),
-        fetchJSON('/api/plants'),
-        fetchJSON('/api/stats'),
-      ]);
-
-      state.leads = leads;
-      state.plants = plants;
-
-      document.getElementById('tierA').textContent = getStat(stats, 'tier_a', 'A');
-      document.getElementById('tierB').textContent = getStat(stats, 'tier_b', 'B');
-      document.getElementById('tierC').textContent = getStat(stats, 'tier_c', 'C');
-      document.getElementById('discarded').textContent = getStat(stats, 'discarded', 'DISCARD');
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const todayCount = leads.filter(l => (l.started_at || '').slice(0, 10) === todayStr).length;
-      document.getElementById('todayCount').textContent = todayCount;
-      updateABTestSummary(leads);
-
-      setupFilters(leads);
-      document.getElementById('filterTier').value = 'all';
-      document.getElementById('filterModel').value = 'all';
-      document.getElementById('sortBy').value = 'priority';
-      applyFiltersAndRender();
-      renderCharts(stats);
     }
 
     function setupFilters(leads) {
       const statusSelect = document.getElementById('filterStatus');
       const plantSelect = document.getElementById('filterPlant');
+
+      statusSelect.innerHTML = '<option value="all">Estado: todos</option>';
+      plantSelect.innerHTML = '<option value="all">Planta: todas</option>';
 
       const statuses = [...new Set(leads.map(l => l.status).filter(Boolean))].sort();
       const plants = [...new Set(leads.map(l => l.plant_name).filter(Boolean))].sort();
@@ -300,35 +312,105 @@
       });
     }
 
-    function applyFiltersAndRender() {
-      const tier = document.getElementById('filterTier').value;
-      const model = document.getElementById('filterModel').value;
-      const status = document.getElementById('filterStatus').value;
-      const plant = document.getElementById('filterPlant').value;
-      const sortBy = document.getElementById('sortBy').value;
+    function updateABTestSummary(leads) {
+      const claude = leads.filter(l => normalizeModel(l.manolo_model) === 'claude').length;
+      const gpt = leads.filter(l => normalizeModel(l.manolo_model) === 'gpt').length;
+      document.getElementById('abClaude').textContent = claude;
+      document.getElementById('abGpt').textContent = gpt;
+    }
 
-      let rows = [...state.leads];
-
-      if (tier !== 'all') rows = rows.filter(l => l.tier === tier);
-      if (model !== 'all') rows = rows.filter(l => normalizeModel(l.manolo_model) === model);
-      if (status !== 'all') rows = rows.filter(l => l.status === status);
-      if (plant !== 'all') rows = rows.filter(l => l.plant_name === plant);
-
-      if (sortBy === 'priority') {
-        rows.sort((a, b) => {
-          const p = contactPriority(a) - contactPriority(b);
-          if (p !== 0) return p;
-          return (a.distance_km ?? 9999) - (b.distance_km ?? 9999);
-        });
-      } else if (sortBy === 'tier') {
-        rows.sort((a, b) => (tierRank[a.tier] ?? 99) - (tierRank[b.tier] ?? 99));
-      } else {
-        rows.sort((a, b) => (a.distance_km ?? 9999) - (b.distance_km ?? 9999));
+    function renderCustomHistory() {
+      const container = document.getElementById('customHistory');
+      if (!state.customSearches.length) {
+        container.innerHTML = '<p class="text-slate-400">Sin búsquedas custom todavía.</p>';
+        return;
       }
 
-      state.filtered = rows;
-      renderTable(rows);
-      renderMap(rows);
+      container.innerHTML = '';
+      state.customSearches.slice(0, 30).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'border border-slate-700 rounded p-2 bg-slate-900/60';
+        const when = new Date(item.created_at || '').toLocaleString();
+        const zone = item.type === 'polygon'
+          ? `Polígono @ centro (${Number(item.zone?.lat || 0).toFixed(4)}, ${Number(item.zone?.lng || 0).toFixed(4)}) r=${Number(item.zone?.radius_km || 0).toFixed(2)}km`
+          : `Círculo (${Number(item.zone?.lat || 0).toFixed(4)}, ${Number(item.zone?.lng || 0).toFixed(4)}) r=${Number(item.zone?.radius_km || 0).toFixed(2)}km`;
+        const ingestButton = item.json_path
+          ? `<span class="text-emerald-300 text-xs">Cargado: ${item.json_path}</span>`
+          : `<button class="ingest-custom-btn bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded text-xs mt-1" data-csv="${item.csv_path || ''}">Cargar al pipeline</button>`;
+        div.innerHTML = `
+          <p class="font-semibold text-sky-200">${zone}</p>
+          <p class="text-xs text-slate-400">${when}</p>
+          <p class="text-xs">Leads: <span class="font-semibold">${item.lead_count || 0}</span></p>
+          <p class="text-xs text-slate-400 break-all">${item.csv_path || ''}</p>
+          ${ingestButton}
+        `;
+        container.appendChild(div);
+      });
+
+      container.querySelectorAll('.ingest-custom-btn').forEach(btn => {
+        btn.addEventListener('click', async (event) => {
+          const csvPath = event.currentTarget.getAttribute('data-csv') || '';
+          if (!csvPath) return;
+          event.currentTarget.disabled = true;
+          event.currentTarget.textContent = 'Cargando...';
+          try {
+            const response = await fetchJSON('/api/ingest_custom', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ csv_path: csvPath }),
+            });
+            const history = await fetchJSON('/api/custom_searches');
+            state.customSearches = history;
+            renderCustomHistory();
+            alert(`Ingest OK: ${response.lead_count || 0} leads -> ${response.json_path || '-'}`);
+          } catch (err) {
+            event.currentTarget.disabled = false;
+            event.currentTarget.textContent = 'Cargar al pipeline';
+            alert(`Error ingestando CSV custom: ${err.message}`);
+          }
+        });
+      });
+    }
+
+    function loadPlantSelector() {
+      const select = document.getElementById('customPlantSelect');
+      select.innerHTML = '<option value="">Automática (más cercana)</option>';
+      state.plants.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.id || p.name;
+        o.textContent = `${p.name} (${p.surplus ?? '-'}%)`;
+        select.appendChild(o);
+      });
+    }
+
+    async function loadData() {
+      const [leads, plants, stats, customSearches] = await Promise.all([
+        fetchJSON('/api/leads'),
+        fetchJSON('/api/plants'),
+        fetchJSON('/api/stats'),
+        fetchJSON('/api/custom_searches'),
+      ]);
+
+      state.leads = leads;
+      state.plants = plants;
+      state.customSearches = customSearches;
+
+      document.getElementById('tierA').textContent = Number(stats.tier_a || 0);
+      document.getElementById('tierB').textContent = Number(stats.tier_b || 0);
+      document.getElementById('tierC').textContent = Number(stats.tier_c || 0);
+      document.getElementById('discarded').textContent = Number(stats.discarded || 0);
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayCount = leads.filter(l => (l.started_at || '').slice(0, 10) === todayStr).length;
+      document.getElementById('todayCount').textContent = todayCount;
+
+      const allLeads = getAllLeads();
+      updateABTestSummary(allLeads);
+      setupFilters(allLeads);
+      applyFiltersAndRender();
+      renderCharts(stats);
+      loadPlantSelector();
+      renderCustomHistory();
     }
 
     function initMap() {
@@ -339,6 +421,7 @@
 
       state.plantLayer = L.layerGroup().addTo(state.map);
       state.leadLayer = L.layerGroup().addTo(state.map);
+      state.drawLayer = L.featureGroup().addTo(state.map);
 
       state.plants.forEach(plant => {
         if (plant.latitude == null || plant.longitude == null) return;
@@ -350,6 +433,74 @@
         }).bindPopup(`<strong>${plant.name}</strong><br/>Surplus: ${plant.surplus ?? '-'}%<br/>Potencia: ${plant.power_kw ?? '-'} kW`);
         state.plantLayer.addLayer(marker);
       });
+
+      state.drawControl = new L.Control.Draw({
+        draw: {
+          polyline: false,
+          rectangle: false,
+          marker: false,
+          circlemarker: false,
+          circle: {
+            shapeOptions: { color: '#38bdf8' },
+          },
+          polygon: {
+            allowIntersection: false,
+            shapeOptions: { color: '#22c55e' },
+          },
+        },
+        edit: {
+          featureGroup: state.drawLayer,
+          remove: true,
+        },
+      });
+      state.map.addControl(state.drawControl);
+
+      state.map.on(L.Draw.Event.CREATED, (event) => {
+        state.drawLayer.clearLayers();
+        const layer = event.layer;
+        state.drawLayer.addLayer(layer);
+
+        if (event.layerType === 'circle') {
+          const center = layer.getLatLng();
+          const radiusKm = layer.getRadius() / 1000;
+          state.activeShape = {
+            type: 'circle',
+            lat: center.lat,
+            lng: center.lng,
+          };
+          document.getElementById('customRadiusKm').value = radiusKm.toFixed(2);
+          document.getElementById('drawInfo').textContent = `Círculo: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)} · radio ${radiusKm.toFixed(2)} km`;
+        } else if (event.layerType === 'polygon') {
+          const coords = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
+          state.activeShape = { type: 'polygon', polygon: coords };
+          document.getElementById('customRadiusKm').value = '2.0';
+          document.getElementById('drawInfo').textContent = `Polígono con ${coords.length} puntos (se usará centroide)`;
+        }
+      });
+
+      state.map.on(L.Draw.Event.EDITED, (event) => {
+        event.layers.eachLayer(layer => {
+          if (layer instanceof L.Circle) {
+            const center = layer.getLatLng();
+            const radiusKm = layer.getRadius() / 1000;
+            state.activeShape = { type: 'circle', lat: center.lat, lng: center.lng };
+            document.getElementById('customRadiusKm').value = radiusKm.toFixed(2);
+            document.getElementById('drawInfo').textContent = `Círculo editado: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)} · radio ${radiusKm.toFixed(2)} km`;
+          } else if (layer instanceof L.Polygon) {
+            const coords = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
+            state.activeShape = { type: 'polygon', polygon: coords };
+            if (!document.getElementById('customRadiusKm').value) {
+              document.getElementById('customRadiusKm').value = '2.0';
+            }
+            document.getElementById('drawInfo').textContent = `Polígono editado con ${coords.length} puntos (se usará centroide)`;
+          }
+        });
+      });
+
+      state.map.on(L.Draw.Event.DELETED, () => {
+        state.activeShape = null;
+        document.getElementById('drawInfo').textContent = 'Dibuja un círculo o polígono en el mapa.';
+      });
     }
 
     function renderMap(leads) {
@@ -358,13 +509,12 @@
 
       const plantsByName = Object.fromEntries(state.plants.map(p => [p.name, p]));
       leads.forEach(lead => {
-        if (!['A', 'B'].includes(lead.tier)) return;
         const plant = plantsByName[lead.plant_name];
         if (!plant || plant.latitude == null || plant.longitude == null) return;
 
-        const lat = plant.latitude + hashOffset(lead.lead_id || lead.lead_name);
-        const lng = plant.longitude + hashOffset((lead.lead_id || lead.lead_name) + 'x');
-        const color = lead.tier === 'A' ? '#22c55e' : '#eab308';
+        const lat = plant.latitude + hashOffset(String(lead.lead_id || lead.lead_name));
+        const lng = plant.longitude + hashOffset(String(lead.lead_id || lead.lead_name) + 'x');
+        const color = lead.is_custom_search ? '#38bdf8' : (lead.tier === 'A' ? '#22c55e' : lead.tier === 'B' ? '#eab308' : '#94a3b8');
 
         const marker = L.circleMarker([lat, lng], {
           radius: 6,
@@ -400,6 +550,37 @@
       });
     }
 
+    function applyFiltersAndRender() {
+      const tier = document.getElementById('filterTier').value;
+      const model = document.getElementById('filterModel').value;
+      const status = document.getElementById('filterStatus').value;
+      const plant = document.getElementById('filterPlant').value;
+      const sortBy = document.getElementById('sortBy').value;
+
+      let rows = [...getAllLeads()];
+
+      if (tier !== 'all') rows = rows.filter(l => l.tier === tier);
+      if (model !== 'all') rows = rows.filter(l => normalizeModel(l.manolo_model) === model);
+      if (status !== 'all') rows = rows.filter(l => l.status === status);
+      if (plant !== 'all') rows = rows.filter(l => l.plant_name === plant);
+
+      if (sortBy === 'priority') {
+        rows.sort((a, b) => {
+          const p = contactPriority(a) - contactPriority(b);
+          if (p !== 0) return p;
+          return (a.distance_km ?? 9999) - (b.distance_km ?? 9999);
+        });
+      } else if (sortBy === 'tier') {
+        rows.sort((a, b) => (tierRank[a.tier] ?? 99) - (tierRank[b.tier] ?? 99));
+      } else {
+        rows.sort((a, b) => (a.distance_km ?? 9999) - (b.distance_km ?? 9999));
+      }
+
+      state.filtered = rows;
+      renderTable(rows);
+      renderMap(rows);
+    }
+
     function renderCharts(stats) {
       const tierCtx = document.getElementById('tierChart');
       const plantCtx = document.getElementById('plantChart');
@@ -412,7 +593,7 @@
         data: {
           labels: ['Tier A', 'Tier B', 'Tier C', 'Descartados'],
           datasets: [{
-            data: [stats.tier_a, stats.tier_b, stats.tier_c, stats.discarded],
+            data: [stats.tier_a || 0, stats.tier_b || 0, stats.tier_c || 0, stats.discarded || 0],
             backgroundColor: ['#22c55e', '#eab308', '#94a3b8', '#ef4444'],
           }],
         },
@@ -454,6 +635,7 @@
 
       const select = document.getElementById('leadStatusSelect');
       select.value = ['pendiente', 'contactado', 'cerrado', 'no_interesa'].includes(lead.status) ? lead.status : 'pendiente';
+      select.disabled = Boolean(lead.is_custom_search);
 
       const container = document.getElementById('messagesList');
       const messages = getLeadMessages(lead);
@@ -491,7 +673,7 @@
     }
 
     async function updateLeadStatus(newStatus) {
-      if (!state.selectedLead) return;
+      if (!state.selectedLead || state.selectedLead.is_custom_search) return;
       await fetchJSON(`/api/leads/${encodeURIComponent(state.selectedLead.lead_id)}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -504,10 +686,79 @@
       applyFiltersAndRender();
     }
 
+    function mergeCustomLeads(newLeads) {
+      const byId = new Map(state.customLeads.map(l => [String(l.lead_id), l]));
+      newLeads.forEach(lead => {
+        byId.set(String(lead.lead_id), {
+          ...lead,
+          tier: lead.tier || 'C',
+          status: lead.status || 'pendiente',
+          is_custom_search: true,
+        });
+      });
+      state.customLeads = [...byId.values()];
+    }
+
+    async function executeCustomSearch() {
+      if (!state.activeShape) {
+        alert('Primero dibuja un círculo o polígono en el mapa.');
+        return;
+      }
+
+      const btn = document.getElementById('customSearchBtn');
+      const spinner = document.getElementById('customSpinner');
+      const resultBox = document.getElementById('customResult');
+      const plantId = document.getElementById('customPlantSelect').value || null;
+
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      resultBox.textContent = '';
+
+      try {
+        const radiusKm = Number(document.getElementById('customRadiusKm').value || '2');
+        const zoneType = state.activeShape.type === 'polygon' ? 'polygon' : 'circle';
+        const center = state.activeShape.type === 'polygon'
+          ? centroidFromPolygon(state.activeShape.polygon)
+          : { lat: state.activeShape.lat, lng: state.activeShape.lng };
+
+        const response = await fetchJSON('/api/search_custom_zone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lat: center.lat,
+            lng: center.lng,
+            radius_km: radiusKm,
+            plant_id: plantId,
+            zone_type: zoneType,
+          }),
+        });
+
+        const leads = Array.isArray(response.leads) ? response.leads : [];
+        mergeCustomLeads(leads);
+        const history = await fetchJSON('/api/custom_searches');
+        state.customSearches = history;
+        renderCustomHistory();
+
+        const allLeads = getAllLeads();
+        setupFilters(allLeads);
+        updateABTestSummary(allLeads);
+        applyFiltersAndRender();
+
+        resultBox.textContent = `OK: ${response.lead_count || 0} leads en ${response.csv_path || '-'} `;
+      } catch (err) {
+        resultBox.textContent = `Error: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+      }
+    }
+
     function bindEvents() {
       ['filterTier', 'filterModel', 'filterStatus', 'filterPlant', 'sortBy'].forEach(id => {
         document.getElementById(id).addEventListener('change', applyFiltersAndRender);
       });
+
+      document.getElementById('customSearchBtn').addEventListener('click', executeCustomSearch);
 
       document.getElementById('closeModal').addEventListener('click', () => {
         document.getElementById('messagesModal').classList.add('hidden');

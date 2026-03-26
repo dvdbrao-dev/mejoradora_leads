@@ -237,33 +237,44 @@ No repitas el análisis de Paco. Solo decide el enfoque."""
     print(f"  👩‍💼 Esther → {esther_result.get('exec_summary', '')[:80]}...")
 
     # Paso 3: Manolo genera mensajes usando el manolo_request de Esther
+    sanitized_lead_name = sanitize_text_for_manolo(str(lead.get("lead_name", "")))
+    sanitized_sector = sanitize_text_for_manolo(str(lead.get("sector", "")))
+    sanitized_address = sanitize_text_for_manolo(str(lead.get("address", "")))
+    sanitized_phone = sanitize_text_for_manolo(str(lead.get("phone", "no disponible")))
+    sanitized_plant_name = sanitize_text_for_manolo(str(lead.get("plant_name", "planta solar cercana")))
+    sanitized_distance = sanitize_text_for_manolo(str(lead.get("distance_km", "desconocida")))
+    sanitized_power_kw = sanitize_text_for_manolo(str(lead.get("plant_power_kw", "desconocida")))
+    sanitized_paco_why = sanitize_text_for_manolo(str(paco_result.get("why", "")))
+    esther_variant = "anti_venta"
+    if isinstance(esther_result.get("manolo_request"), dict):
+        esther_variant = sanitize_text_for_manolo(str(esther_result["manolo_request"].get("variant", "anti_venta")))
+
     manolo_msg = f"""Escribe 3 variantes de mensaje (anti_venta, dolor_perdida, 
 autoridad) para este lead.
 
 Lead:
-- Nombre: {lead.get('lead_name', '')}
-- Sector: {lead.get('sector', '')}
-- Dirección: {lead.get('address', '')}
-- Teléfono: {lead.get('phone', 'no disponible')}
+- Nombre: {sanitized_lead_name}
+- Sector: {sanitized_sector}
+- Dirección: {sanitized_address}
+- Teléfono: {sanitized_phone}
 
 Datos de la planta solar más cercana:
-- Planta: {lead.get('plant_name', 'planta solar cercana')}
-- Distancia: {lead.get('distance_km', 'desconocida')} km
-- Potencia: {lead.get('plant_power_kw', 'desconocida')} kW
+- Planta: {sanitized_plant_name}
+- Distancia: {sanitized_distance} km
+- Potencia: {sanitized_power_kw} kW
 
-Contexto comercial de Paco (limpio): {sanitize_text_for_manolo(str(paco_result.get('why', '')))}
-Enfoque recomendado por Esther: {esther_result.get('manolo_request', {}).get('variant', 'anti_venta') if isinstance(esther_result.get('manolo_request'), dict) else 'anti_venta'}
+Contexto comercial de Paco (limpio): {sanitized_paco_why}
+Enfoque recomendado por Esther: {esther_variant}
 
 Genera exactamente 3 variantes. JSON válido y completo."""
     manolo_model = choose_manolo_model(tier)
     run["manolo_model"] = manolo_model
-    selected_manolo_model, manolo_result = call_manolo_agent(
+    _, manolo_result = call_manolo_agent(
         "manolo",
         manolo_msg,
         tier,
         model=manolo_model,
     )
-    run["manolo_model"] = selected_manolo_model
     run["manolo"] = manolo_result
 
     # Manolo puede devolver array de variantes o un solo objeto
