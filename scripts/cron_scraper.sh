@@ -32,4 +32,4 @@ run_and_ingest "talleres mecánicos" "Granada, España" 50
 # Instrucciones para crontab:
 # 1) Ejecuta: crontab -e
 # 2) Añade esta línea (en una sola línea) para correr cada 3 días a las 06:00:
-# 0 6 */3 * * /bin/bash /home/dvdbrao/openfang/scripts/cron_scraper.sh >> /home/dvdbrao/openfang/runs/cron_scraper.log 2>&1
+# 0 6 */3 * * MEJORADORA_LEADS_HOME=/home/dvdbrao/openfang /bin/bash /home/dvdbrao/openfang/scripts/cron_scraper.sh >> /home/dvdbrao/openfang/runs/cron_scraper.log 2>&1

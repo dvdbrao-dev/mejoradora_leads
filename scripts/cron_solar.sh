@@ -49,4 +49,4 @@ run_and_ingest "$PLANTS_PATH" "$API_KEY" "$RADIUS" "$MAX_PER_PLANT" "$MIN_SURPLU
 # Instrucciones para crontab:
 # 1) Ejecuta: crontab -e
 # 2) Añade esta línea (en una sola línea) para correr semanalmente a las 07:00:
-# 0 7 */7 * * /bin/bash /home/dvdbrao/openfang/scripts/cron_solar.sh >> /home/dvdbrao/openfang/runs/cron_solar.log 2>&1
+# 0 7 */7 * * MEJORADORA_LEADS_HOME=/home/dvdbrao/openfang /bin/bash /home/dvdbrao/openfang/scripts/cron_solar.sh >> /home/dvdbrao/openfang/runs/cron_solar.log 2>&1

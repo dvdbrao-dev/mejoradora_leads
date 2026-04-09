@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
-from crawl4ai import AsyncWebCrawler
 import asyncio
 import json
-import re
 import os
+import re
+import sys
+from pathlib import Path
 
-ENRICHED_PATH = os.path.expanduser("~/openfang/runs/enriched.json")
+from crawl4ai import AsyncWebCrawler
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+from mejoradora_paths import get_project_paths
+
+PATHS = get_project_paths(Path(__file__))
+ENRICHED_PATH = str(PATHS.runs / "enriched.json")
 MAX_WEBS = 10
 SLEEP_SECONDS = 1
 

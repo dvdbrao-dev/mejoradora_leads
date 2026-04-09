@@ -16,6 +16,8 @@ from typing import Any
 
 import requests
 
+from mejoradora_plants import load_capture_plants
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = BASE_DIR / "inputs" / "raw"
@@ -190,33 +192,7 @@ def fetch_nearby_places(api_key: str, latitude: float, longitude: float, radius:
 
 
 def load_plants(path: Path, min_surplus: float) -> list[dict[str, Any]]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    plants = payload.get("solar_plants", [])
-    out: list[dict[str, Any]] = []
-
-    for idx, plant in enumerate(plants, start=1):
-        coordinates = plant.get("coordinates", {})
-        lat = coordinates.get("latitude")
-        lng = coordinates.get("longitude")
-        if lat is None or lng is None:
-            continue
-
-        surplus = float(plant.get("surplus_percentage", 0) or 0)
-        if surplus < min_surplus:
-            continue
-
-        out.append(
-            {
-                "plant_id": clean_text(plant.get("id", "")) or f"plant_{idx}",
-                "plant_name": clean_text(plant.get("name", "")) or f"Planta {idx}",
-                "plant_power_kw": clean_text(plant.get("power_kw", "")),
-                "plant_surplus_pct": surplus,
-                "latitude": float(lat),
-                "longitude": float(lng),
-            }
-        )
-
-    return out
+    return load_capture_plants(path, min_surplus=min_surplus)
 
 
 def main() -> int:

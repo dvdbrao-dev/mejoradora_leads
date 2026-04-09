@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 import json
 import os
+import sys
 import time
 from pathlib import Path
 from urllib import error, parse, request
 
-RUNS_DIR = Path("~/openfang/runs").expanduser()
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+from mejoradora_paths import get_project_paths
+from mejoradora_runtime import iter_valid_run_records
+
+
+PATHS = get_project_paths(Path(__file__))
+RUNS_DIR = PATHS.runs
 ENRICHED_PATH = RUNS_DIR / "enriched.json"
-IGNORED_FILES = {"enriched.json", "lead_status.json"}
 API_BASE = "https://places.googleapis.com/v1/places"
 FIELD_MASK = "internationalPhoneNumber,websiteUri,regularOpeningHours,nationalPhoneNumber"
 SLEEP_SECONDS = 0.3
@@ -71,15 +80,7 @@ def get_name(record: dict) -> str:
 def build_candidates(enriched: dict):
     candidates = {}
 
-    for path in sorted(RUNS_DIR.glob("*.json")):
-        if path.name in IGNORED_FILES:
-            continue
-
-        try:
-            record = load_json(path)
-        except (OSError, json.JSONDecodeError):
-            continue
-
+    for path, record in iter_valid_run_records(RUNS_DIR):
         tier = get_tier(record)
         if tier not in {"A", "B"}:
             continue

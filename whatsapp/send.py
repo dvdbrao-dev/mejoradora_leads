@@ -2,14 +2,22 @@
 """Envia mensajes de Manolo (variante anti_venta) por WhatsApp via HTTP local."""
 
 import json
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib import error, request
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
-BASE_DIR = Path.home() / "openfang"
-RUNS_DIR = BASE_DIR / "runs"
+from mejoradora_paths import get_project_paths
+from mejoradora_runtime import iter_valid_run_records, load_runtime_dict, load_runtime_list
+
+
+PATHS = get_project_paths(Path(__file__))
+RUNS_DIR = PATHS.runs
 ENRICHED_PATH = RUNS_DIR / "enriched.json"
 SENT_PATH = RUNS_DIR / "whatsapp_sent.json"
 SEND_URL = "http://localhost:3001/send"
@@ -20,12 +28,11 @@ TEST_PHONE = "34616785103"
 
 
 def load_json(path: Path, default):
-    if not path.exists():
-        return default
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return default
+    if isinstance(default, dict):
+        return load_runtime_dict(path)
+    if isinstance(default, list):
+        return load_runtime_list(path)
+    return default
 
 
 def normalize_phone(phone: str) -> str:
@@ -47,16 +54,8 @@ def normalize_manolo_output(manolo_obj) -> list[dict]:
 
 def build_latest_run_map() -> dict[str, dict]:
     latest_by_place_id: dict[str, tuple[float, dict]] = {}
-    ignored = {"enriched.json", "lead_status.json", "whatsapp_sent.json"}
 
-    for path in RUNS_DIR.glob("*.json"):
-        if path.name in ignored:
-            continue
-        try:
-            run = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            continue
-
+    for path, run in iter_valid_run_records(RUNS_DIR):
         lead = run.get("lead", {})
         if not isinstance(lead, dict):
             continue

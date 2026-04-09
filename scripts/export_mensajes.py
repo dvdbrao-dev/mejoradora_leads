@@ -2,27 +2,25 @@
 """Exporta mensajes de Manolo desde runs a un CSV."""
 
 import csv
-import json
+import sys
 from datetime import datetime
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
-BASE_DIR = Path(__file__).parent.parent
-RUNS_DIR = Path.home() / "openfang" / "runs"
+from mejoradora_paths import get_project_paths
+from mejoradora_runtime import iter_valid_run_records
+
+
+PATHS = get_project_paths(Path(__file__))
+RUNS_DIR = PATHS.runs
 OUTPUTS_DIR = BASE_DIR / "outputs"
 
 
 def load_runs() -> list[dict]:
-    runs = []
-    if not RUNS_DIR.exists():
-        return runs
-
-    for path in sorted(RUNS_DIR.glob("*.json")):
-        try:
-            runs.append(json.loads(path.read_text(encoding="utf-8")))
-        except (json.JSONDecodeError, OSError):
-            continue
-    return runs
+    return [run for _, run in iter_valid_run_records(RUNS_DIR)]
 
 
 def get_lead_field(lead: dict, key: str, default: str = "") -> str:

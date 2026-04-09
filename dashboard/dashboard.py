@@ -15,11 +15,20 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-RUNS_DIR = BASE_DIR / "runs"
-PLANTS_FILE = BASE_DIR / "data" / "plants.json"
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+from mejoradora_paths import get_project_paths
+from mejoradora_plants import load_dashboard_plants
+from mejoradora_runtime import iter_valid_run_records, load_json_file, load_runtime_dict, load_runtime_list
+
+
+PATHS = get_project_paths(Path(__file__))
+RUNS_DIR = PATHS.runs
+PLANTS_FILE = PATHS.data / "plants.json"
 STATUS_FILE = RUNS_DIR / "lead_status.json"
 CUSTOM_SEARCH_HISTORY_FILE = RUNS_DIR / "custom_searches.json"
-DASHBOARD_DIR = BASE_DIR / "dashboard"
+DASHBOARD_DIR = PATHS.dashboard
 SCRAPER_CUSTOM_ZONE = BASE_DIR / "scripts" / "scraper_custom_zone.py"
 INGEST_SCRIPT = BASE_DIR / "scripts" / "ingest.py"
 
@@ -53,11 +62,7 @@ VALID_STATUSES = {"pendiente", "contactado", "cerrado", "no_interesa"}
 
 
 def parse_json_file(path: Path) -> dict[str, Any] | list[Any] | None:
-    try:
-        with path.open("r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return None
+    return load_json_file(path)
 
 
 def to_float(value: Any) -> float | None:
@@ -79,8 +84,7 @@ def normalize_tier(raw_tier: Any, status: str) -> str:
 
 
 def load_status_overrides() -> dict[str, str]:
-    data = parse_json_file(STATUS_FILE)
-    return data if isinstance(data, dict) else {}
+    return load_runtime_dict(STATUS_FILE)
 
 
 def save_status_overrides(statuses: dict[str, str]) -> None:
@@ -115,14 +119,7 @@ def load_leads() -> list[dict[str, Any]]:
     status_overrides = load_status_overrides()
     leads: list[dict[str, Any]] = []
 
-    for run_file in RUNS_DIR.glob("*.json"):
-        if run_file.name in {STATUS_FILE.name, CUSTOM_SEARCH_HISTORY_FILE.name}:
-            continue
-
-        run = parse_json_file(run_file)
-        if not isinstance(run, dict):
-            continue
-
+    for run_file, run in iter_valid_run_records(RUNS_DIR):
         lead = run.get("lead") if isinstance(run.get("lead"), dict) else {}
         lead_id = str(run.get("lead_id") or lead.get("lead_id") or run_file.stem)
         pipeline_status = str(run.get("status") or "")
@@ -154,27 +151,8 @@ def load_leads() -> list[dict[str, Any]]:
     return leads
 
 
-def load_plants() -> list[dict[str, Any]]:
-    raw = parse_json_file(PLANTS_FILE)
-    plants_raw = raw.get("solar_plants", []) if isinstance(raw, dict) else []
-    plants: list[dict[str, Any]] = []
-    for idx, p in enumerate(plants_raw, start=1):
-        if not isinstance(p, dict):
-            continue
-        coords = p.get("coordinates") or {}
-        name = str(p.get("name") or "")
-        plant_id = str(p.get("id") or f"{name.lower().replace(' ', '_')}_{idx}")
-        plants.append(
-            {
-                "id": plant_id,
-                "name": name,
-                "latitude": to_float(coords.get("latitude")),
-                "longitude": to_float(coords.get("longitude")),
-                "surplus": to_float(p.get("surplus_percentage")),
-                "power_kw": to_float(p.get("power_kw")),
-            }
-        )
-    return plants
+def load_plants(status: str | None = "active") -> list[dict[str, Any]]:
+    return load_dashboard_plants(PLANTS_FILE, status=status)
 
 
 def read_csv_rows(csv_path: Path) -> list[dict[str, Any]]:
@@ -275,10 +253,8 @@ def run_ingest(csv_path: str) -> tuple[str, int]:
 
 
 def load_custom_search_history() -> list[dict[str, Any]]:
-    data = parse_json_file(CUSTOM_SEARCH_HISTORY_FILE)
-    if isinstance(data, list):
-        return data
-    return []
+    data = load_runtime_list(CUSTOM_SEARCH_HISTORY_FILE)
+    return [item for item in data if isinstance(item, dict)]
 
 
 def save_custom_search_history(history: list[dict[str, Any]]) -> None:
@@ -356,8 +332,8 @@ def get_stats() -> dict[str, Any]:
 
 
 @app.get("/api/plants")
-def get_plants() -> list[dict[str, Any]]:
-    return load_plants()
+def get_plants(status: str = "active") -> list[dict[str, Any]]:
+    return load_plants(status=None if status == "all" else status)
 
 
 @app.get("/api/custom_searches")

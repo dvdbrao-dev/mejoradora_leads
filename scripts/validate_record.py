@@ -13,7 +13,7 @@ def load_json(path):
 
 def main():
     if len(sys.argv) != 3:
-        print("Uso: python3 openfang/scripts/validate_record.py <schema.json> <record.json>")
+        print("Uso: python3 scripts/validate_record.py <schema.json> <record.json>")
         sys.exit(1)
 
     schema_path = Path(sys.argv[1])

@@ -1,11 +1,31 @@
+# Credenciales y entorno
 .env
+.venv/
+venv/
+
+# Cache local de Python
 __pycache__/
 *.pyc
+
+# Logs y temporales
+*.log
+
+# Sesiones y runtime de WhatsApp
 whatsapp/auth_info/
 whatsapp/.wwebjs_auth/
+whatsapp/.wwebjs_cache/
 whatsapp/node_modules/
+whatsapp/npm-debug.log*
+
+# Datos de entrada operativos
 inputs/raw/
+inputs/cleaned/*.json
+
+# Runtime local del pipeline
 runs/*.json
+!runs/.gitkeep
 !runs/enriched.json
 !runs/lead_status.json
+
+# Outputs generados
 outputs/

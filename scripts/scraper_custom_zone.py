@@ -17,6 +17,8 @@ from typing import Any
 
 import requests
 
+from mejoradora_plants import load_capture_plants
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = BASE_DIR / "inputs" / "raw"
 PLANTS_FILE = BASE_DIR / "data" / "plants.json"
@@ -122,36 +124,7 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def load_plants(path: Path) -> list[dict[str, Any]]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    raw_plants = payload.get("solar_plants", [])
-    plants: list[dict[str, Any]] = []
-
-    for idx, plant in enumerate(raw_plants, start=1):
-        if not isinstance(plant, dict):
-            continue
-
-        coords = plant.get("coordinates") or {}
-        lat = coords.get("latitude")
-        lng = coords.get("longitude")
-        if lat is None or lng is None:
-            continue
-
-        name = clean_text(plant.get("name", "")) or f"Planta {idx}"
-        raw_id = clean_text(plant.get("id", ""))
-        plant_id = raw_id or f"{slugify(name)}_{idx}"
-
-        plants.append(
-            {
-                "plant_id": plant_id,
-                "plant_name": name,
-                "plant_power_kw": clean_text(plant.get("power_kw", "")),
-                "plant_surplus_pct": float(plant.get("surplus_percentage", 0) or 0),
-                "latitude": float(lat),
-                "longitude": float(lng),
-            }
-        )
-
-    return plants
+    return load_capture_plants(path)
 
 
 def find_assigned_plant(plants: list[dict[str, Any]], lat: float, lng: float, plant_id: str | None) -> dict[str, Any]:
