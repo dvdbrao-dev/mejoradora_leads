@@ -136,6 +136,18 @@ La resolucion de ruta base ahora sigue esta politica:
 La lectura de `runs/` debe ignorar JSON auxiliares como `enriched.json`,
 `lead_status.json`, `whatsapp_sent.json` y `custom_searches.json`.
 
+El nuevo estado operativo propio de ContactQueue vive en:
+
+```bash
+runtime/contact_queue_state.json
+```
+
+Prioridad de estado:
+
+1. `runtime/contact_queue_state.json`
+2. mapeo legacy (`runs/lead_status.json`, `runs/whatsapp_sent.json`)
+3. valores por defecto del contrato `ContactQueue`
+
 ## Exportador comercial
 
 El exportador formal vive en:
@@ -152,6 +164,7 @@ Filtros disponibles:
 - `--commercial-status no_opportunity,lost`
 - `--plant-id <id>`
 - `--with-phone`
+- `--preset ready_for_review|ready_for_contact|contacted_pending_followup|do_not_contact`
 - `--limit N`
 - `--format json|csv|both`
 
@@ -161,12 +174,39 @@ Ejemplo:
 python3 scripts/export_contact_queue.py --tier A,B --with-phone --limit 50 --format both
 ```
 
+Presets operativos:
+
+- `ready_for_review`: `review_status in {pending, needs_review}` y `contact_status in {not_queued, queued, ready}`
+- `ready_for_contact`: `review_status = approved`, `contact_status in {not_queued, queued, ready}` y `with_phone = true`
+- `contacted_pending_followup`: `contact_status in {contacted, waiting_reply}`
+- `do_not_contact`: `contact_status = do_not_contact`
+
 Por defecto este exportador solo incluye leads ligados a plantas `active`.
 
 Si hace falta revisar historico o plantas ya cerradas:
 
 ```bash
 python3 scripts/export_contact_queue.py --include-non-active-plants
+```
+
+## Flujo manual de ContactQueue
+
+Actualizar estado operativo manual:
+
+```bash
+python3 scripts/update_contact_queue_state.py <lead_id> \
+  --owner paco \
+  --review-status approved \
+  --contact-status ready \
+  --commercial-status opportunity_open \
+  --next-action "revisar mensaje y validar telefono" \
+  --notes "prioridad media"
+```
+
+Verificar el efecto en la cola:
+
+```bash
+python3 scripts/export_contact_queue.py --preset ready_for_contact --limit 20 --format json
 ```
 
 ## Smoke test

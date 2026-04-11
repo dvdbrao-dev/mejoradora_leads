@@ -27,6 +27,7 @@ runs/*.json
 !runs/.gitkeep
 !runs/enriched.json
 !runs/lead_status.json
+runtime/*.json
 
 # Outputs generados
 outputs/

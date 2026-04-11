@@ -69,6 +69,7 @@ def resolve_project_home(anchor: Path | None = None) -> Path:
 class ProjectPaths:
     home: Path
     runs: Path
+    runtime: Path
     outputs: Path
     inputs: Path
     inputs_raw: Path
@@ -84,6 +85,7 @@ def get_project_paths(anchor: Path | None = None) -> ProjectPaths:
     return ProjectPaths(
         home=home,
         runs=home / "runs",
+        runtime=home / "runtime",
         outputs=home / "outputs",
         inputs=home / "inputs",
         inputs_raw=home / "inputs" / "raw",
