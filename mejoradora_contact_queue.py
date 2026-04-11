@@ -10,6 +10,9 @@ from typing import Any
 
 from mejoradora_runtime import iter_valid_run_records
 from mejoradora_statuses import (
+    OFFICIAL_COMMERCIAL_STATUSES,
+    OFFICIAL_CONTACT_STATUSES,
+    OFFICIAL_REVIEW_STATUSES,
     load_legacy_contact_status_map,
     load_legacy_whatsapp_sent_index,
     map_commercial_status,
@@ -68,6 +71,50 @@ def _infer_channel(phone: str | None, website: str | None) -> str:
     return "manual"
 
 
+def load_contact_queue_operational_state(state_path: Path) -> dict[str, dict[str, str]]:
+    if not state_path.exists():
+        return {}
+
+    try:
+        import json
+
+        raw = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+    if not isinstance(raw, dict):
+        return {}
+
+    state_map: dict[str, dict[str, str]] = {}
+    for lead_id, payload in raw.items():
+        normalized_lead_id = str(lead_id or "").strip()
+        if not normalized_lead_id or not isinstance(payload, dict):
+            continue
+
+        entry: dict[str, str] = {}
+        for field in ("owner", "last_contact_at", "next_action", "notes", "updated_at"):
+            value = str(payload.get(field) or "").strip()
+            if value:
+                entry[field] = value
+
+        review_status = str(payload.get("review_status") or "").strip()
+        if review_status in OFFICIAL_REVIEW_STATUSES:
+            entry["review_status"] = review_status
+
+        contact_status = str(payload.get("contact_status") or "").strip()
+        if contact_status in OFFICIAL_CONTACT_STATUSES:
+            entry["contact_status"] = contact_status
+
+        commercial_status = str(payload.get("commercial_status") or "").strip()
+        if commercial_status in OFFICIAL_COMMERCIAL_STATUSES:
+            entry["commercial_status"] = commercial_status
+
+        if entry:
+            state_map[normalized_lead_id] = entry
+
+    return state_map
+
+
 @dataclass
 class ContactQueueItem:
     """
@@ -114,6 +161,9 @@ class ContactQueueItem:
     message_preview: str | None = None
     reason_fit: str | None = None
     owner: str | None = None
+    last_contact_at: str | None = None
+    next_action: str | None = None
+    notes: str | None = None
     run_ref: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -127,6 +177,7 @@ def build_contact_queue_item(
     legacy_contact_statuses: dict[str, str] | None = None,
     whatsapp_sent_lead_ids: set[str] | None = None,
     whatsapp_sent_place_ids: set[str] | None = None,
+    operational_states: dict[str, dict[str, str]] | None = None,
 ) -> ContactQueueItem | None:
     lead = run.get("lead") if isinstance(run.get("lead"), dict) else {}
     lead_id = str(run.get("lead_id") or lead.get("lead_id") or "").strip()
@@ -151,6 +202,11 @@ def build_contact_queue_item(
         contact_status=contact_status,
         legacy_contact_statuses=legacy_contact_statuses,
     )
+    operational_state = operational_states.get(lead_id, {}) if operational_states else {}
+    review_status = operational_state.get("review_status", review_status)
+    contact_status = operational_state.get("contact_status", contact_status)
+    commercial_status = operational_state.get("commercial_status", commercial_status)
+    updated_at = operational_state.get("updated_at", updated_at)
 
     plant_id = str(lead.get("plant_id") or "").strip() or None
     item = ContactQueueItem(
@@ -176,7 +232,10 @@ def build_contact_queue_item(
         suggested_channel=_infer_channel(phone, website),
         message_preview=_extract_message_preview(run),
         reason_fit=_extract_reason_fit(run),
-        owner=str(owner or "").strip() or None,
+        owner=operational_state.get("owner") or str(owner or "").strip() or None,
+        last_contact_at=operational_state.get("last_contact_at"),
+        next_action=operational_state.get("next_action"),
+        notes=operational_state.get("notes"),
         created_at=created_at,
         updated_at=updated_at,
         run_ref=source_path.name if source_path is not None else None,
@@ -187,10 +246,17 @@ def build_contact_queue_item(
     return item
 
 
-def build_contact_queue_from_runs(runs_dir: Path, owner: str | None = None) -> list[ContactQueueItem]:
+def build_contact_queue_from_runs(
+    runs_dir: Path,
+    owner: str | None = None,
+    operational_state_path: Path | None = None,
+) -> list[ContactQueueItem]:
     items: list[ContactQueueItem] = []
     legacy_contact_statuses = load_legacy_contact_status_map(runs_dir)
     whatsapp_sent_lead_ids, whatsapp_sent_place_ids = load_legacy_whatsapp_sent_index(runs_dir)
+    operational_states = (
+        load_contact_queue_operational_state(operational_state_path) if operational_state_path is not None else {}
+    )
 
     for path, run in iter_valid_run_records(runs_dir):
         item = build_contact_queue_item(
@@ -200,6 +266,7 @@ def build_contact_queue_from_runs(runs_dir: Path, owner: str | None = None) -> l
             legacy_contact_statuses=legacy_contact_statuses,
             whatsapp_sent_lead_ids=whatsapp_sent_lead_ids,
             whatsapp_sent_place_ids=whatsapp_sent_place_ids,
+            operational_states=operational_states,
         )
         if item is not None:
             items.append(item)

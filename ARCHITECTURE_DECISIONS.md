@@ -450,6 +450,9 @@ Campos opcionales:
 - `message_preview`
 - `reason_fit`
 - `owner`
+- `last_contact_at`
+- `next_action`
+- `notes`
 
 Estado inicial por defecto:
 
@@ -458,6 +461,14 @@ Estado inicial por defecto:
 
 Este contrato sirve para construir la futura cola comercial real sin depender
 de estructuras ambiguas de runtime.
+
+Estado operativo propio:
+
+- fuente: `runtime/contact_queue_state.json`
+- clave: `lead_id`
+- prioridad: prevalece sobre el mapeo legacy cuando exista
+- alcance: `owner`, `review_status`, `contact_status`, `commercial_status`,
+  `last_contact_at`, `next_action`, `notes`, `updated_at`
 
 ## 9. Mapeo canonico de estados legacy
 
