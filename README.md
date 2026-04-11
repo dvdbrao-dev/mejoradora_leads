@@ -82,6 +82,7 @@ Flujo semanal recomendado:
 ## Documentos oficiales
 
 - `README.md`
+- `CHANGELOG.md`
 - `ROADMAP.md`
 - `PROJECT_STRUCTURE.md`
 - `ARCHITECTURE_DECISIONS.md`
@@ -90,7 +91,7 @@ Flujo semanal recomendado:
 ## Documentos legacy o de referencia
 
 - `BIBLE.md`
-- `STATE_OF_PROJECT.md`
+- `legacy/openfang/STATE_OF_PROJECT_2026-04-09.md`
 - `phase_2.json`
 
 ## Arranque minimo
@@ -166,4 +167,13 @@ Si hace falta revisar historico o plantas ya cerradas:
 
 ```bash
 python3 scripts/export_contact_queue.py --include-non-active-plants
+```
+
+## Smoke test
+
+```bash
+python3 scripts/manage_plants.py validate
+python3 scripts/export_contact_queue.py --limit 10 --format json
+python3 -m py_compile mejoradora_*.py scripts/*.py whatsapp/send.py dashboard/*.py
+node --check whatsapp/server.js
 ```

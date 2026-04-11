@@ -1,5 +1,6 @@
 # Credenciales y entorno
 .env
+.codex
 .venv/
 venv/
 
