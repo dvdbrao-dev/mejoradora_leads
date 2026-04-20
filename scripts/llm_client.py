@@ -5,7 +5,7 @@ import os
 from openai import OpenAI
 
 NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1'
-NVIDIA_MODEL = 'nvidia/llama-3.3-nemotron-super-49b-v1'
+NVIDIA_MODEL = "z-ai/glm4.7"
 OPENAI_MODEL = 'gpt-4o-mini'
 
 def get_client(tier='standard'):
