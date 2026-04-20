@@ -1,169 +1,274 @@
 # Mejoradora Leads
 
-Repo oficial: `dvdbrao-dev/mejoradora_leads`
+Pipeline B2B para generar, calificar, enriquecer y exportar leads orientados a
+la venta de membresias para comunidades solares y cambio de comercializadora.
 
-Mejoradora Leads es un sistema de prospeccion B2B para localizar, calificar,
-enriquecer y preparar contacto comercial sobre leads cercanos a plantas
-fotovoltaicas.
+VPS operativo: `dvdbrao@5.78.69.147`
+Repositorio: `dvdbrao-dev/mejoradora_leads`
 
-La ruta local actual sigue siendo legacy: `/home/dvdbrao/openfang`. Eso se
-mantiene temporalmente para no romper scripts ni runtime.
+---
 
-## Que hay hoy
+## Estado actual
 
-- pipeline Python funcional para scraping, ingesta, calificacion y mensajes
-- dashboard FastAPI + HTML
-- bloque WhatsApp en piloto
-- runtime historico local en `inputs/`, `runs/` y `outputs/`
+El proyecto esta desplegado en el VPS y ya tiene una separacion clara entre:
 
-## Regla estructural principal
+- repo versionado en `~/mejoradora_leads`
+- runtime local en `~/mejoradora_leads_data`
+- entorno virtual Python en `~/mejoradora_leads/.venv`
+- variables de entorno centralizadas en `~/.env.mejoradora`
 
-El repo solo debe contener:
+El runtime operativo ya no debe vivir en git. Los inputs, runs, logs, backups y
+outputs se guardan fuera del repo.
 
-- codigo fuente
-- configuracion versionable
-- documentacion oficial
-- ejemplos y fixtures pequenos
+---
 
-El runtime local no debe vivir en git:
+## Stack
 
-- `inputs/raw/`
-- `inputs/cleaned/`
-- `runs/`
-- `outputs/`
-- sesiones/caches de WhatsApp
+- Python 3.10
+- FastAPI + Uvicorn
+- OpenAI API
+- Google Places API
+- Crawl4AI
+- Node.js 22 para el piloto de WhatsApp Web
+- Makefile operativo para tareas frecuentes
 
-## Flujo actual
+Dependencias Python declaradas hoy en `requirements.txt`:
 
-1. `data/plants.json`
-2. `scripts/scraper_solar.py` o `scripts/scraper_custom_zone.py`
-3. `inputs/raw/*.csv`
-4. `scripts/ingest.py`
-5. `inputs/cleaned/*.json`
-6. `scripts/route.py`
-7. `runs/<lead>_<timestamp>.json`
-8. `outputs/analysis/*.json` y `outputs/messages/*.json`
-9. `scripts/enrich.py` y opcionalmente `scripts/enrich_web.py`
-10. `dashboard/dashboard.py`
-11. piloto WhatsApp: `whatsapp/server.js` + `whatsapp/send.py`
+- `jsonschema`
+- `openai`
+- `requests`
+- `fastapi`
+- `pydantic`
+- `uvicorn[standard]`
+- `crawl4ai`
 
-## Operacion de plantas
+Nota: `anthropic` no forma parte actualmente de `requirements.txt`.
 
-La planta pasa a ser la unidad comercial principal.
+---
 
-Fuente oficial de verdad en esta iteracion:
+## Layout real
+
+### Repo
+
+```text
+~/mejoradora_leads
+├── Makefile
+├── README.md
+├── requirements.txt
+├── data/
+├── scripts/
+├── whatsapp/
+├── dashboard/
+├── tests/
+├── inputs/
+├── runs/
+└── outputs/
+```
+
+### Runtime local
+
+```text
+~/mejoradora_leads_data
+├── README.md
+├── backups/
+├── inputs/
+│   ├── raw/
+│   └── cleaned/
+├── logs/
+├── outputs/
+│   ├── analysis/
+│   └── messages/
+└── runs/
+```
+
+Regla vigente:
+
+- el repo contiene codigo, configuracion y documentacion
+- `~/mejoradora_leads_data` contiene datos operativos y artefactos del pipeline
+
+---
+
+## Variables de entorno
+
+Las API keys y paths ya no viven hardcodeadas en `~/.bashrc`.
+
+Fuente activa actual:
+
+- `~/.env.mejoradora`
+
+Variables relevantes:
+
+- `MEJORADORA_LEADS_HOME`
+- `OPENAI_API_KEY`
+- `GOOGLE_PLACES_API_KEY`
+- `FIRECRAWL_API_KEY`
+- `GEMINI_API_KEY`
+- `OPENROUTER_API_KEY`
+- `NVIDIA_API_KEY`
+
+`~/.bashrc` solo hace:
+
+```bash
+source ~/.env.mejoradora
+```
+
+---
+
+## Scripts principales
+
+Los scripts operativos actuales en `scripts/` son:
+
+- `scraper_solar.py`
+- `scraper_custom_zone.py`
+- `ingest.py`
+- `route.py`
+- `enrich.py`
+- `enrich_web.py`
+- `export_contact_queue.py`
+- `export_mensajes.py`
+- `manage_plants.py`
+- `dashboard.py`
+- `validate_record.py`
+
+Soporte adicional:
+
+- `cron_scraper.sh`
+- `cron_solar.sh`
+- `start_dashboard.sh`
+
+---
+
+## Flujo operativo actual
+
+Flujo base:
+
+1. captar leads con `scripts/scraper_solar.py` o `scripts/scraper_custom_zone.py`
+2. guardar bruto en `~/mejoradora_leads_data/inputs/raw/`
+3. normalizar e ingerir
+4. generar JSON limpios en `~/mejoradora_leads_data/inputs/cleaned/`
+5. rutear y clasificar con `scripts/route.py`
+6. generar runs en `~/mejoradora_leads_data/runs/`
+7. enriquecer con `scripts/enrich.py` y `scripts/enrich_web.py`
+8. exportar cola comercial y mensajes
+
+La base de plantas actual vive en:
 
 - `data/plants.json`
 
-Regla operativa:
+---
 
-- solo `status=active` participa por defecto en captacion
-- solo `status=active` participa por defecto en exportacion comercial
-- `full`, `paused`, `pending_data` y `archived` quedan fuera del flujo por defecto
+## Makefile operativo
 
-CLI operativa:
+El repo ya incluye `Makefile` con comandos principales:
 
 ```bash
-python3 scripts/manage_plants.py list
-python3 scripts/manage_plants.py active
-python3 scripts/manage_plants.py add --name "CS Demo Norte" --lat 40.41 --lon -3.70 --municipality Madrid --province Madrid
-python3 scripts/manage_plants.py set-status plant_12 full --note "Cupo completo"
-python3 scripts/manage_plants.py validate
+make help
+make install
+make dashboard
+make scrape
+make pipeline
+make enrich
+make export
+make status
+make plants
+make clean-logs
+make backup
+make test
 ```
 
-Flujo semanal recomendado:
+Comportamiento esperado:
 
-1. alta de planta con `add` y estado inicial `pending_data`
-2. completar datos operativos minimos
-3. activar con `set-status <plant_id> active`
-4. cuando deje de captar, marcar `full`
-5. si debe salir del circuito, usar `paused` o `archived`
+- `make pipeline` toma el ultimo JSON disponible en `$(MEJORADORA_LEADS_HOME)/inputs/cleaned/`
+- `make export` genera cola comercial filtrada
+- `make dashboard` expone FastAPI en puerto `8080`
 
-## Documentos oficiales
+---
 
-- `README.md`
-- `ROADMAP.md`
-- `PROJECT_STRUCTURE.md`
-- `ARCHITECTURE_DECISIONS.md`
-- `CLEANUP_PLAN.md`
+## Arranque rapido
 
-## Documentos legacy o de referencia
-
-- `BIBLE.md`
-- `STATE_OF_PROJECT.md`
-- `phase_2.json`
-
-## Arranque minimo
+### 1. Activar entorno
 
 ```bash
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-uvicorn scripts.dashboard:app --host 0.0.0.0 --port 8080
+cd ~/mejoradora_leads
+source .venv/bin/activate
+source ~/.env.mejoradora
 ```
 
-WhatsApp:
+### 2. Ver ayuda operativa
 
 ```bash
-cd whatsapp
-npm install
-node server.js
+make help
 ```
 
-## Variables vistas en el codigo actual
-
-- `MEJORADORA_LEADS_HOME`
-- `GOOGLE_PLACES_API_KEY`
-- `OPENAI_API_KEY`
-- `ANTHROPIC_API_KEY`
-
-## Decisiones vigentes
-
-- No migrar aun la carpeta fisica `openfang`.
-- No refactorizar aun la logica del pipeline.
-- No mezclar estados comerciales, de revision y de contacto.
-- No usar documentos legacy como fuente oficial de verdad.
-
-## Paths y runtime
-
-La resolucion de ruta base ahora sigue esta politica:
-
-1. usar `MEJORADORA_LEADS_HOME` si existe
-2. si no existe, resolver relativo al repo actual
-3. mantener compatibilidad con `/home/dvdbrao/openfang`
-
-La lectura de `runs/` debe ignorar JSON auxiliares como `enriched.json`,
-`lead_status.json`, `whatsapp_sent.json` y `custom_searches.json`.
-
-## Exportador comercial
-
-El exportador formal vive en:
+### 3. Arrancar dashboard
 
 ```bash
-python3 scripts/export_contact_queue.py
+make dashboard
 ```
 
-Filtros disponibles:
-
-- `--tier A,B`
-- `--review-status approved,needs_review`
-- `--contact-status not_queued,contacted`
-- `--commercial-status no_opportunity,lost`
-- `--plant-id <id>`
-- `--with-phone`
-- `--limit N`
-- `--format json|csv|both`
-
-Ejemplo:
+### 4. Ejecutar pipeline sobre el ultimo cleaned
 
 ```bash
-python3 scripts/export_contact_queue.py --tier A,B --with-phone --limit 50 --format both
+make pipeline
 ```
 
-Por defecto este exportador solo incluye leads ligados a plantas `active`.
-
-Si hace falta revisar historico o plantas ya cerradas:
+### 5. Exportar cola comercial
 
 ```bash
-python3 scripts/export_contact_queue.py --include-non-active-plants
+make export
 ```
+
+---
+
+## WhatsApp
+
+El piloto de WhatsApp sigue separado en `whatsapp/`.
+
+Archivos relevantes:
+
+- `whatsapp/server.js`
+- `whatsapp/send.py`
+- `whatsapp/connect.js`
+- `whatsapp/connect2.js`
+
+No se deben versionar sesiones ni caches de WhatsApp.
+
+---
+
+## Estado de gitignore
+
+El `.gitignore` actual ya excluye elementos sensibles u operativos como:
+
+- `.env`
+- `.venv/`
+- `__pycache__/`
+- `inputs/raw/`
+- `inputs/cleaned/*.json`
+- `runs/*.json`
+- `outputs/`
+- caches y sesiones de WhatsApp
+
+La intencion sigue siendo mantener el runtime fuera del repo.
+
+---
+
+## Estado real del entorno en abril de 2026
+
+Confirmado en el VPS:
+
+- disco saneado y con espacio libre suficiente
+- `python3.10-venv` instalado
+- `.venv` creada correctamente
+- imports `fastapi`, `openai` y `uvicorn` funcionando
+- `anthropic` no instalado por defecto
+- `make help` funcional
+- `Makefile` ya committeado en git
+
+---
+
+## Proximos pasos recomendados
+
+- ajustar scripts para leer siempre de `MEJORADORA_LEADS_HOME`
+- revisar si `inputs/`, `runs/` y `outputs/` del repo deben quedarse solo como legacy
+- anadir `anthropic` a `requirements.txt` solo si vuelve a usarse
+- limpiar coincidencias de secretos dentro de `.venv` cuando no hagan falta paquetes pesados
