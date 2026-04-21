@@ -73,6 +73,5 @@ backup: ## Backup de runs e inputs a backups/
 		$(DATA)/runs/ $(DATA)/inputs/ 2>/dev/null
 	@echo "Backup creado en $(DATA)/backups/"
 
-test: ## Ejecuta tests si existen
-	@source $(VENV) && python3 -m pytest tests/ -v 2>/dev/null || echo "No hay tests todavia"
-
+test: ## Run tests
+	@source $(VENV) && python3 tests/test_dashboard.py
