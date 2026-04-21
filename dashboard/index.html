@@ -43,6 +43,60 @@
       </div>
     </section>
 
+    <section class="card rounded-xl p-4 space-y-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h2 class="font-semibold text-lg">Soldelia</h2>
+          <p class="text-sm text-slate-400">Resumen comercial y operativo del pipeline activo.</p>
+        </div>
+        <div class="text-xs text-slate-400">
+          Endpoint: <code class="text-sky-300">/api/stats/soldelia</code>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+        <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-3">
+          <p class="text-xs text-slate-400">Total leads</p>
+          <p id="soldeliaTotal" class="text-2xl font-bold text-white">0</p>
+        </div>
+        <div class="rounded-lg border border-emerald-800 bg-emerald-950/40 p-3">
+          <p class="text-xs text-emerald-300">Tier A</p>
+          <p id="soldeliaTierA" class="text-2xl font-bold text-emerald-300">0</p>
+        </div>
+        <div class="rounded-lg border border-amber-800 bg-amber-950/40 p-3">
+          <p class="text-xs text-amber-300">Tier B</p>
+          <p id="soldeliaTierB" class="text-2xl font-bold text-amber-300">0</p>
+        </div>
+        <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-3">
+          <p class="text-xs text-slate-400">Tier C</p>
+          <p id="soldeliaTierC" class="text-2xl font-bold text-slate-200">0</p>
+        </div>
+        <div class="rounded-lg border border-rose-800 bg-rose-950/40 p-3">
+          <p class="text-xs text-rose-300">Discard</p>
+          <p id="soldeliaDiscard" class="text-2xl font-bold text-rose-300">0</p>
+        </div>
+        <div class="rounded-lg border border-sky-800 bg-sky-950/40 p-3">
+          <p class="text-xs text-sky-300">Con teléfono</p>
+          <p id="soldeliaPhone" class="text-2xl font-bold text-sky-300">0</p>
+        </div>
+        <div class="rounded-lg border border-indigo-800 bg-indigo-950/40 p-3">
+          <p class="text-xs text-indigo-300">Plantas activas</p>
+          <p id="soldeliaPlants" class="text-2xl font-bold text-indigo-300">0</p>
+        </div>
+        <div class="rounded-lg border border-fuchsia-800 bg-fuchsia-950/40 p-3">
+          <p class="text-xs text-fuchsia-300">Comisión año 1</p>
+          <p id="soldeliaCommission" class="text-2xl font-bold text-fuchsia-300">0 €</p>
+        </div>
+      </div>
+
+      <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-3">
+        <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Plantas top</p>
+        <div id="soldeliaPlantsTop" class="flex flex-wrap gap-2 text-sm text-slate-200">
+          <span class="px-2 py-1 rounded bg-slate-800 border border-slate-700">Sin datos</span>
+        </div>
+      </div>
+    </section>
+
     <section class="grid grid-cols-1 xl:grid-cols-3 gap-4">
       <div class="card rounded-xl p-3 xl:col-span-2">
         <div class="flex items-center justify-between mb-2">
@@ -319,6 +373,28 @@
       document.getElementById('abGpt').textContent = gpt;
     }
 
+    function renderSoldeliaStats(stats) {
+      document.getElementById('soldeliaTotal').textContent = Number(stats.total_leads || 0);
+      document.getElementById('soldeliaTierA').textContent = Number(stats.tier_a || 0);
+      document.getElementById('soldeliaTierB').textContent = Number(stats.tier_b || 0);
+      document.getElementById('soldeliaTierC').textContent = Number(stats.tier_c || 0);
+      document.getElementById('soldeliaDiscard').textContent = Number(stats.discard || 0);
+      document.getElementById('soldeliaPhone').textContent = Number(stats.con_telefono || 0);
+      document.getElementById('soldeliaPlants').textContent = Number(stats.plantas_activas || 0);
+      document.getElementById('soldeliaCommission').textContent = `${Number(stats.comision_estimada_ano1_eur || 0).toFixed(0)} €`;
+
+      const plantsTop = document.getElementById('soldeliaPlantsTop');
+      const plants = Array.isArray(stats.plantas_top) ? stats.plantas_top : [];
+      if (!plants.length) {
+        plantsTop.innerHTML = '<span class="px-2 py-1 rounded bg-slate-800 border border-slate-700">Sin datos</span>';
+        return;
+      }
+
+      plantsTop.innerHTML = plants
+        .map(name => `<span class="px-2 py-1 rounded bg-slate-800 border border-slate-700">${name}</span>`)
+        .join('');
+    }
+
     function renderCustomHistory() {
       const container = document.getElementById('customHistory');
       if (!state.customSearches.length) {
@@ -384,11 +460,12 @@
     }
 
     async function loadData() {
-      const [leads, plants, stats, customSearches] = await Promise.all([
+      const [leads, plants, stats, customSearches, soldeliaStats] = await Promise.all([
         fetchJSON('/api/leads'),
         fetchJSON('/api/plants'),
         fetchJSON('/api/stats'),
         fetchJSON('/api/custom_searches'),
+        fetchJSON('/api/stats/soldelia'),
       ]);
 
       state.leads = leads;
@@ -406,6 +483,7 @@
 
       const allLeads = getAllLeads();
       updateABTestSummary(allLeads);
+      renderSoldeliaStats(soldeliaStats);
       setupFilters(allLeads);
       applyFiltersAndRender();
       renderCharts(stats);

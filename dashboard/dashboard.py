@@ -331,6 +331,38 @@ def get_stats() -> dict[str, Any]:
     }
 
 
+@app.get("/api/stats/soldelia")
+def get_soldelia_stats() -> dict[str, Any]:
+    leads = load_leads()
+    plants = load_plants(status=None)
+
+    tier_a = sum(1 for lead in leads if lead.get("tier") == "A")
+    tier_b = sum(1 for lead in leads if lead.get("tier") == "B")
+    tier_c = sum(1 for lead in leads if lead.get("tier") == "C")
+    discard = sum(1 for lead in leads if lead.get("tier") == "DISCARD")
+    with_phone = sum(1 for lead in leads if str(lead.get("phone") or "").strip())
+
+    top_plants = sorted(
+        (
+            plant.get("name")
+            for plant in plants
+            if isinstance(plant, dict) and str(plant.get("name") or "").strip()
+        )
+    )[:5]
+
+    return {
+        "total_leads": len(leads),
+        "tier_a": tier_a,
+        "tier_b": tier_b,
+        "tier_c": tier_c,
+        "discard": discard,
+        "con_telefono": with_phone,
+        "plantas_activas": len(plants),
+        "plantas_top": top_plants,
+        "comision_estimada_ano1_eur": (tier_a + tier_b) * 50,
+    }
+
+
 @app.get("/api/plants")
 def get_plants(status: str = "active") -> list[dict[str, Any]]:
     return load_plants(status=None if status == "all" else status)
