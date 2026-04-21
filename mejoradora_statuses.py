@@ -144,3 +144,30 @@ def map_commercial_status(
     if legacy_value == "no_interesa":
         return "lost"
     return "no_opportunity"
+
+
+# DOBLE PRODUCTO SOLDELIA
+OFFICIAL_SOLDELIA_STATUSES = {
+    "not_contacted",
+    "contacted",
+    "factura_recibida",
+    "estudio_enviado",
+    "signed",
+    "lost",
+}
+
+OFFICIAL_COMERCIALIZADORA_STATUSES = {
+    "not_contacted",
+    "contacted",
+    "comparativa_enviada",
+    "signed",
+    "lost",
+}
+
+
+def default_soldelia_status() -> str:
+    return "not_contacted"
+
+
+def default_comercializadora_status() -> str:
+    return "not_contacted"

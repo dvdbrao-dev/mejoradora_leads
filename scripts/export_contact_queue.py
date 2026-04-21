@@ -94,6 +94,10 @@ def export_csv(items: list[ContactQueueItem], output_path: Path) -> None:
         "created_at",
         "updated_at",
         "run_ref",
+        "soldelia_status",
+        "comercializadora_status",
+        "kwh_adjudicados",
+        "comision_soldelia_ano1_eur",
     ]
     with output_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)

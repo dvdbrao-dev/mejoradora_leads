@@ -10,6 +10,8 @@ from typing import Any
 
 from mejoradora_runtime import iter_valid_run_records
 from mejoradora_statuses import (
+    default_comercializadora_status,
+    default_soldelia_status,
     load_legacy_contact_status_map,
     load_legacy_whatsapp_sent_index,
     map_commercial_status,
@@ -115,6 +117,10 @@ class ContactQueueItem:
     reason_fit: str | None = None
     owner: str | None = None
     run_ref: str | None = None
+    soldelia_status: str = default_soldelia_status()
+    comercializadora_status: str = default_comercializadora_status()
+    kwh_adjudicados: float | None = None
+    comision_soldelia_ano1_eur: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
