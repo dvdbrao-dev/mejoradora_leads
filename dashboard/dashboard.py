@@ -14,6 +14,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+try:
+    from dashboard.routers import dashboard_v2
+except ModuleNotFoundError:
+    from routers import dashboard_v2
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
@@ -32,7 +37,7 @@ DASHBOARD_DIR = PATHS.dashboard
 SCRAPER_CUSTOM_ZONE = BASE_DIR / "scripts" / "scraper_custom_zone.py"
 INGEST_SCRIPT = BASE_DIR / "scripts" / "ingest.py"
 
-app = FastAPI(title="Openfang Dashboard", version="1.1.0")
+app = FastAPI(title="Mejoradora Leads Dashboard", version="1.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,6 +45,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(dashboard_v2.router)
 
 
 class StatusUpdate(BaseModel):

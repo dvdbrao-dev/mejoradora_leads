@@ -1,874 +1,437 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mejoradora Granada - Leads Gen MJ Granada</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mejoradora Leads Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    body { background: #0f172a; color: #e2e8f0; }
-    .card { background: #111827; border: 1px solid #1f2937; }
-    #map { height: 52vh; min-height: 380px; }
+    :root {
+      --bg: #07111b;
+      --panel: #0f1c2a;
+      --panel-2: #132438;
+      --line: #23374f;
+      --muted: #8da2ba;
+      --text: #e7eff9;
+      --green: #14b86f;
+      --orange: #f97316;
+      --red: #dc2626;
+      --yellow: #ca8a04;
+      --slate: #64748b;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(20, 184, 111, 0.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(249, 115, 22, 0.12), transparent 20%),
+        linear-gradient(180deg, #07111b 0%, #0b1622 100%);
+      color: var(--text);
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(15, 28, 42, 0.96), rgba(12, 24, 36, 0.96));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+    }
+
+    .metric {
+      background: linear-gradient(180deg, rgba(19, 36, 56, 0.85), rgba(13, 27, 41, 0.85));
+      border: 1px solid rgba(85, 111, 138, 0.25);
+      border-radius: 14px;
+    }
+
+    .pipeline-track {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      overflow: hidden;
+      height: 16px;
+    }
+
+    .pipeline-fill {
+      background: linear-gradient(90deg, #14b86f, #f59e0b);
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .status-up { background: var(--green); }
+    .status-down { background: var(--red); }
+    .status-unknown { background: #f59e0b; }
+
+    .lead-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+    }
+
+    #map {
+      height: 500px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
   </style>
 </head>
-<body class="min-h-screen">
-  <div class="max-w-7xl mx-auto px-4 py-4 md:py-6 space-y-4">
-    <header class="card rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-      <div class="flex items-start gap-3">
-        <div class="w-11 h-11 rounded-lg bg-[#BA7517] text-white font-bold flex items-center justify-center">MJ</div>
+<body class="min-h-screen font-sans">
+  <header class="border-b border-slate-800/80 px-6 py-5">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
+      <div>
+        <p class="text-xs uppercase tracking-[0.35em] text-emerald-300">Dashboard Operativo</p>
+        <h1 class="mt-1 text-3xl font-semibold">Mejoradora Leads</h1>
+        <p id="last-update" class="mt-1 text-sm text-slate-400">Cargando...</p>
+      </div>
+      <button id="refresh-btn" class="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/25">
+        Refrescar
+      </button>
+    </div>
+  </header>
+
+  <main class="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-6">
+    <section id="overview" class="grid grid-cols-2 gap-4 xl:grid-cols-6"></section>
+
+    <section class="panel p-6">
+      <div class="mb-4 flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-semibold">Mejoradora Granada</h1>
-          <p class="text-sm text-slate-300">Leads Gen MJ Granada</p>
+          <h2 class="text-lg font-semibold">Pipeline Comercial</h2>
+          <p class="text-sm text-slate-400">Fotografía rápida del embudo actual.</p>
         </div>
       </div>
-      <div class="text-sm md:text-base">
-        Leads procesados hoy: <span id="todayCount" class="font-bold text-sky-300">0</span>
-      </div>
-    </header>
-
-    <section class="grid grid-cols-2 md:grid-cols-5 gap-3">
-      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">A</p><p id="tierA" class="text-2xl font-bold" style="color:#22c55e">0</p></div>
-      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">B</p><p id="tierB" class="text-2xl font-bold" style="color:#eab308">0</p></div>
-      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">C</p><p id="tierC" class="text-2xl font-bold" style="color:#94a3b8">0</p></div>
-      <div class="card rounded-xl p-4"><p class="text-xs text-slate-400">DISCARD</p><p id="discarded" class="text-2xl font-bold" style="color:#ef4444">0</p></div>
-      <div class="card rounded-xl p-4">
-        <p class="text-xs text-slate-400">A/B Test</p>
-        <p class="text-sm"><span id="abClaude" class="font-bold text-orange-300">0</span> Claude</p>
-        <p class="text-sm"><span id="abGpt" class="font-bold text-sky-300">0</span> GPT</p>
-      </div>
+      <div id="pipeline" class="space-y-3"></div>
     </section>
 
-    <section class="card rounded-xl p-4 space-y-4">
-      <div class="flex items-center justify-between gap-3">
-        <div>
-          <h2 class="font-semibold text-lg">Soldelia</h2>
-          <p class="text-sm text-slate-400">Resumen comercial y operativo del pipeline activo.</p>
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <section class="panel p-6">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-semibold">Leads</h2>
+            <p id="leads-count" class="text-sm text-slate-400"></p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-sm">
+            <select id="filter-tier" class="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-2">
+              <option value="">Todos tiers</option>
+              <option value="A">Tier A</option>
+              <option value="B">Tier B</option>
+              <option value="C">Tier C</option>
+              <option value="DISCARD">Discard</option>
+            </select>
+            <select id="filter-status" class="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-2">
+              <option value="">Todos estados</option>
+              <option value="pending">Pending</option>
+              <option value="sms_sent">SMS enviado</option>
+              <option value="whatsapp_received">Respondió</option>
+              <option value="visit_done">Visita hecha</option>
+              <option value="closed_won">Cerrado</option>
+            </select>
+          </div>
         </div>
-        <div class="text-xs text-slate-400">
-          Endpoint: <code class="text-sky-300">/api/stats/soldelia</code>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-        <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-3">
-          <p class="text-xs text-slate-400">Total leads</p>
-          <p id="soldeliaTotal" class="text-2xl font-bold text-white">0</p>
-        </div>
-        <div class="rounded-lg border border-emerald-800 bg-emerald-950/40 p-3">
-          <p class="text-xs text-emerald-300">Tier A</p>
-          <p id="soldeliaTierA" class="text-2xl font-bold text-emerald-300">0</p>
-        </div>
-        <div class="rounded-lg border border-amber-800 bg-amber-950/40 p-3">
-          <p class="text-xs text-amber-300">Tier B</p>
-          <p id="soldeliaTierB" class="text-2xl font-bold text-amber-300">0</p>
-        </div>
-        <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-3">
-          <p class="text-xs text-slate-400">Tier C</p>
-          <p id="soldeliaTierC" class="text-2xl font-bold text-slate-200">0</p>
-        </div>
-        <div class="rounded-lg border border-rose-800 bg-rose-950/40 p-3">
-          <p class="text-xs text-rose-300">Discard</p>
-          <p id="soldeliaDiscard" class="text-2xl font-bold text-rose-300">0</p>
-        </div>
-        <div class="rounded-lg border border-sky-800 bg-sky-950/40 p-3">
-          <p class="text-xs text-sky-300">Con teléfono</p>
-          <p id="soldeliaPhone" class="text-2xl font-bold text-sky-300">0</p>
-        </div>
-        <div class="rounded-lg border border-indigo-800 bg-indigo-950/40 p-3">
-          <p class="text-xs text-indigo-300">Plantas activas</p>
-          <p id="soldeliaPlants" class="text-2xl font-bold text-indigo-300">0</p>
-        </div>
-        <div class="rounded-lg border border-fuchsia-800 bg-fuchsia-950/40 p-3">
-          <p class="text-xs text-fuchsia-300">Comisión año 1</p>
-          <p id="soldeliaCommission" class="text-2xl font-bold text-fuchsia-300">0 €</p>
-        </div>
-      </div>
-
-      <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-3">
-        <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Plantas top</p>
-        <div id="soldeliaPlantsTop" class="flex flex-wrap gap-2 text-sm text-slate-200">
-          <span class="px-2 py-1 rounded bg-slate-800 border border-slate-700">Sin datos</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-      <div class="card rounded-xl p-3 xl:col-span-2">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="font-semibold">Mapa de Leads y Plantas</h2>
-          <p class="text-xs text-slate-400">Toolbar: círculo y polígono</p>
-        </div>
-        <div id="map" class="rounded-lg"></div>
-      </div>
-
-      <div class="card rounded-xl p-3">
-        <h2 class="font-semibold mb-2">Zona seleccionada</h2>
-        <p id="drawInfo" class="text-sm text-slate-400 mb-3">Dibuja un círculo o polígono en el mapa.</p>
-
-        <label class="text-xs text-slate-400">Radio (km)</label>
-        <input id="customRadiusKm" type="number" min="0.1" step="0.1" value="2.0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm mb-3" />
-
-        <label class="text-xs text-slate-400">Planta (opcional)</label>
-        <select id="customPlantSelect" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm mb-3">
-          <option value="">Automática (más cercana)</option>
-        </select>
-
-        <button id="customSearchBtn" class="w-full bg-sky-700 hover:bg-sky-600 rounded px-3 py-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-          Buscar leads en esta zona
-        </button>
-        <div id="customSpinner" class="hidden text-xs text-sky-300 mt-2">Buscando leads...</div>
-        <div id="customResult" class="text-xs text-slate-300 mt-2"></div>
-      </div>
-    </section>
-
-    <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <div class="card rounded-xl p-3 overflow-hidden">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Leads</h2>
-          <span id="rowsCount" class="text-xs text-slate-400">0 resultados</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
-          <select id="filterTier" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
-            <option value="all">Tier: todos</option>
-            <option value="A">Tier A</option>
-            <option value="B">Tier B</option>
-            <option value="C">Tier C</option>
-            <option value="DISCARD">Descartados</option>
-          </select>
-          <select id="filterModel" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
-            <option value="all">Modelo: todos</option>
-            <option value="claude">Modelo: Claude</option>
-            <option value="gpt">Modelo: GPT</option>
-          </select>
-          <select id="filterStatus" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
-            <option value="all">Estado: todos</option>
-          </select>
-          <select id="filterPlant" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
-            <option value="all">Planta: todas</option>
-          </select>
-          <select id="sortBy" class="bg-slate-900 border border-slate-700 rounded px-2 py-2 text-sm">
-            <option value="priority" selected>Orden: prioridad contacto</option>
-            <option value="tier">Orden: tier</option>
-            <option value="distance">Orden: distancia</option>
-          </select>
-        </div>
-
-        <div class="overflow-auto max-h-[420px]">
+        <div class="max-h-[30rem] overflow-auto">
           <table class="w-full text-sm">
-            <thead class="sticky top-0 bg-slate-900">
-              <tr class="text-left text-slate-400 border-b border-slate-700">
-                <th class="py-2 pr-2">Nombre</th>
-                <th class="py-2 pr-2">Tier</th>
-                <th class="py-2 pr-2">Sector</th>
-                <th class="py-2 pr-2">Teléfono</th>
-                <th class="py-2 pr-2">Planta</th>
-                <th class="py-2 pr-2">Distancia</th>
-                <th class="py-2 pr-2">Modelo</th>
-                <th class="py-2 pr-2">Estado</th>
+            <thead class="sticky top-0 bg-[#0f1c2a] text-left text-xs uppercase tracking-[0.2em] text-slate-400">
+              <tr>
+                <th class="py-3 pr-3">Tier</th>
+                <th class="py-3 pr-3">Nombre</th>
+                <th class="py-3 pr-3">Municipio</th>
+                <th class="py-3 pr-3">Estado</th>
               </tr>
             </thead>
-            <tbody id="leadsTable"></tbody>
+            <tbody id="leads-tbody"></tbody>
           </table>
         </div>
-      </div>
+      </section>
 
-      <div class="space-y-4">
-        <div class="card rounded-xl p-4">
-          <h3 class="font-semibold mb-2">Distribución de Tiers</h3>
-          <canvas id="tierChart" height="180"></canvas>
+      <section class="panel p-6">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-semibold">Mapa Geográfico</h2>
+            <p class="text-sm text-slate-400">Plantas activas y leads geocodificados.</p>
+          </div>
         </div>
-        <div class="card rounded-xl p-4">
-          <h3 class="font-semibold mb-2">Leads por Planta</h3>
-          <canvas id="plantChart" height="180"></canvas>
+        <div id="map"></div>
+        <div class="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
+          <span>Plantas: <span id="plants-count">0</span></span>
+          <span>Leads mapeados: <span id="leads-mapped-count">0</span></span>
         </div>
-        <div class="card rounded-xl p-4">
-          <h3 class="font-semibold mb-2">Búsquedas Custom</h3>
-          <div id="customHistory" class="text-sm text-slate-300 space-y-2 max-h-52 overflow-auto"></div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <div id="messagesModal" class="fixed inset-0 hidden items-end md:items-center justify-center" style="z-index: 2000;">
-    <div id="messagesOverlay" class="absolute inset-0 bg-black/70"></div>
-    <div class="relative w-full md:max-w-3xl max-h-[90vh] overflow-auto card rounded-t-xl md:rounded-xl p-4">
-      <div class="flex items-start justify-between gap-3 mb-3">
-        <div>
-          <h3 id="modalLeadName" class="text-xl font-semibold"></h3>
-          <p id="modalMeta" class="text-sm text-slate-400"></p>
-        </div>
-        <button id="closeModal" class="text-slate-300 hover:text-white">Cerrar</button>
-      </div>
-
-      <div class="mb-4">
-        <label class="text-sm text-slate-400">Estado</label>
-        <select id="leadStatusSelect" class="w-full md:w-64 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm mt-1">
-          <option value="pendiente">Pendiente</option>
-          <option value="contactado">Contactado</option>
-          <option value="cerrado">Cerrado</option>
-          <option value="no_interesa">No interesa</option>
-        </select>
-      </div>
-
-      <div class="mb-3">
-        <span id="modalModelBadge"></span>
-      </div>
-
-      <div id="messagesList" class="space-y-3"></div>
+      </section>
     </div>
-  </div>
+
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <section class="panel p-6">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold">Timeline</h2>
+          <p class="text-sm text-slate-400">Últimos eventos de los últimos 7 días.</p>
+        </div>
+        <div id="timeline" class="max-h-[28rem] space-y-3 overflow-auto"></div>
+      </section>
+
+      <section class="panel p-6">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold">Estado Técnico</h2>
+          <p class="text-sm text-slate-400">Servicios y crédito operativo.</p>
+        </div>
+        <div id="services" class="space-y-3"></div>
+      </section>
+    </div>
+  </main>
 
   <script>
-    const state = {
-      leads: [],
-      customLeads: [],
-      plants: [],
-      customSearches: [],
-      filtered: [],
-      selectedLead: null,
-      activeShape: null,
-      map: null,
-      plantLayer: null,
-      leadLayer: null,
-      drawLayer: null,
-      drawControl: null,
-      tierChart: null,
-      plantChart: null,
-    };
+    const API = "/api/dashboard";
+    let allLeads = [];
+    let map = null;
+    let mapLayers = [];
 
-    const tierRank = { A: 0, B: 1, C: 2, DISCARD: 3 };
-
-    function normalizeModel(model) {
-      const raw = String(model || '').toLowerCase();
-      if (raw.includes('claude')) return 'claude';
-      if (raw.includes('gpt')) return 'gpt';
-      return '';
+    async function fetchJSON(path) {
+      const response = await fetch(API + path);
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+      return response.json();
     }
 
-    function hasPhone(lead) {
-      return String(lead.phone || '').trim().length > 0;
+    function formatNumber(value) {
+      return new Intl.NumberFormat("es-ES").format(value || 0);
     }
 
-    function fmtDistance(km) {
-      if (km === null || km === undefined || Number.isNaN(Number(km))) return '-';
-      return `${Number(km).toFixed(2)} km`;
+    function formatEuro(value) {
+      return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value || 0);
+    }
+
+    function timeAgo(iso) {
+      const seconds = (Date.now() - new Date(iso).getTime()) / 1000;
+      if (seconds < 60) return `hace ${Math.round(seconds)}s`;
+      if (seconds < 3600) return `hace ${Math.round(seconds / 60)}m`;
+      if (seconds < 86400) return `hace ${Math.round(seconds / 3600)}h`;
+      return `hace ${Math.round(seconds / 86400)}d`;
     }
 
     function tierBadge(tier) {
-      const cls = tier === 'A' ? 'text-green-400' : tier === 'B' ? 'text-yellow-400' : tier === 'C' ? 'text-slate-300' : 'text-red-400';
-      return `<span class="font-semibold ${cls}">${tier}</span>`;
-    }
-
-    function statusBadge(status) {
-      const map = {
-        pendiente: 'bg-slate-700 text-slate-100',
-        contactado: 'bg-blue-700 text-blue-100',
-        cerrado: 'bg-green-700 text-green-100',
-        no_interesa: 'bg-rose-700 text-rose-100',
+      const styles = {
+        A: "background:#991b1b;color:#fecaca;",
+        B: "background:#9a3412;color:#fed7aa;",
+        C: "background:#854d0e;color:#fde68a;",
+        DISCARD: "background:#334155;color:#cbd5e1;"
       };
-      const cls = map[status] || 'bg-slate-700 text-slate-100';
-      return `<span class="px-2 py-0.5 rounded text-xs ${cls}">${status || 'pendiente'}</span>`;
+      return `<span class="rounded-full px-2 py-1 text-xs font-semibold" style="${styles[tier] || styles.DISCARD}">${tier || "-"}</span>`;
     }
 
-    function modelBadge(model) {
-      const normalized = normalizeModel(model);
-      if (normalized === 'claude') {
-        return '<span class="px-2 py-0.5 rounded text-xs bg-orange-700 text-orange-100">claude</span>';
-      }
-      if (normalized === 'gpt') {
-        return '<span class="px-2 py-0.5 rounded text-xs bg-blue-700 text-blue-100">gpt</span>';
-      }
-      return '<span class="px-2 py-0.5 rounded text-xs bg-slate-700 text-slate-200">n/a</span>';
+    async function renderOverview() {
+      const data = await fetchJSON("/overview");
+      const root = document.getElementById("overview");
+      root.innerHTML = `
+        <article class="metric p-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Total Leads</p>
+          <p class="mt-3 text-3xl font-semibold">${formatNumber(data.leads.total)}</p>
+          <p class="mt-2 text-sm text-slate-400">${data.leads.tier_a} A · ${data.leads.tier_b} B</p>
+        </article>
+        <article class="metric p-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">SMS Enviados</p>
+          <p class="mt-3 text-3xl font-semibold">${formatNumber(data.pipeline.sms_sent)}</p>
+          <p class="mt-2 text-sm text-rose-300">${data.pipeline.sms_failed} fallos</p>
+        </article>
+        <article class="metric p-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Respondieron</p>
+          <p class="mt-3 text-3xl font-semibold">${formatNumber(data.pipeline.responded)}</p>
+          <p class="mt-2 text-sm text-slate-400">${data.pipeline.visits_done} visitas hechas</p>
+        </article>
+        <article class="metric p-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Cerrados</p>
+          <p class="mt-3 text-3xl font-semibold text-emerald-400">${formatNumber(data.pipeline.closed_won)}</p>
+          <p class="mt-2 text-sm text-slate-400">${data.pipeline.closed_lost} perdidos</p>
+        </article>
+        <article class="metric p-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Comisión Proyectada</p>
+          <p class="mt-3 text-3xl font-semibold">${formatEuro(data.financiero.comision_proyectada_year1_eur)}</p>
+          <p class="mt-2 text-sm text-slate-400">${formatEuro(data.financiero.comision_cerrada_eur)} cerrada</p>
+        </article>
+        <article class="metric p-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Geocodificados</p>
+          <p class="mt-3 text-3xl font-semibold">${formatNumber(data.leads.con_coordenadas)}</p>
+          <p class="mt-2 text-sm text-slate-400">de ${formatNumber(data.leads.total)}</p>
+        </article>
+      `;
     }
 
-    function hashOffset(value) {
-      let h = 0;
-      for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) >>> 0;
-      return ((h % 100) - 50) / 8000;
-    }
-
-    function centroidFromPolygon(points) {
-      if (!Array.isArray(points) || points.length === 0) return { lat: 0, lng: 0 };
-      const totals = points.reduce((acc, [lat, lng]) => {
-        acc.lat += Number(lat || 0);
-        acc.lng += Number(lng || 0);
-        return acc;
-      }, { lat: 0, lng: 0 });
-      return {
-        lat: totals.lat / points.length,
-        lng: totals.lng / points.length,
-      };
-    }
-
-    function getAllLeads() {
-      return [...state.leads, ...state.customLeads];
-    }
-
-    function getLeadMessages(lead) {
-      const fromMensajes = Array.isArray(lead.mensajes) ? lead.mensajes : [];
-      const fromManolo = Array.isArray(lead.manolo) ? lead.manolo : (lead.manolo && typeof lead.manolo === 'object' ? [lead.manolo] : []);
-      const source = fromMensajes.length ? fromMensajes : fromManolo;
-      return source
-        .filter(item => item && typeof item === 'object')
-        .map(item => ({
-          variant: item.variant || '',
-          message: item.message || '',
-          cta: item.cta || '',
-        }));
-    }
-
-    function contactPriority(lead) {
-      const tier = lead.tier;
-      const phonePriority = hasPhone(lead) ? 0 : 1;
-      if (tier === 'A') return phonePriority;
-      if (tier === 'B') return 2 + phonePriority;
-      if (tier === 'C') return 4 + phonePriority;
-      return 6 + phonePriority;
-    }
-
-    async function fetchJSON(url, options) {
-      const res = await fetch(url, options);
-      if (!res.ok) {
-        const body = await res.text();
-        throw new Error(body || `HTTP ${res.status}`);
-      }
-      return res.json();
-    }
-
-    function setupFilters(leads) {
-      const statusSelect = document.getElementById('filterStatus');
-      const plantSelect = document.getElementById('filterPlant');
-
-      statusSelect.innerHTML = '<option value="all">Estado: todos</option>';
-      plantSelect.innerHTML = '<option value="all">Planta: todas</option>';
-
-      const statuses = [...new Set(leads.map(l => l.status).filter(Boolean))].sort();
-      const plants = [...new Set(leads.map(l => l.plant_name).filter(Boolean))].sort();
-
-      statuses.forEach(s => {
-        const o = document.createElement('option');
-        o.value = s;
-        o.textContent = `Estado: ${s}`;
-        statusSelect.appendChild(o);
-      });
-
-      plants.forEach(p => {
-        const o = document.createElement('option');
-        o.value = p;
-        o.textContent = p;
-        plantSelect.appendChild(o);
-      });
-    }
-
-    function updateABTestSummary(leads) {
-      const claude = leads.filter(l => normalizeModel(l.manolo_model) === 'claude').length;
-      const gpt = leads.filter(l => normalizeModel(l.manolo_model) === 'gpt').length;
-      document.getElementById('abClaude').textContent = claude;
-      document.getElementById('abGpt').textContent = gpt;
-    }
-
-    function renderSoldeliaStats(stats) {
-      document.getElementById('soldeliaTotal').textContent = Number(stats.total_leads || 0);
-      document.getElementById('soldeliaTierA').textContent = Number(stats.tier_a || 0);
-      document.getElementById('soldeliaTierB').textContent = Number(stats.tier_b || 0);
-      document.getElementById('soldeliaTierC').textContent = Number(stats.tier_c || 0);
-      document.getElementById('soldeliaDiscard').textContent = Number(stats.discard || 0);
-      document.getElementById('soldeliaPhone').textContent = Number(stats.con_telefono || 0);
-      document.getElementById('soldeliaPlants').textContent = Number(stats.plantas_activas || 0);
-      document.getElementById('soldeliaCommission').textContent = `${Number(stats.comision_estimada_ano1_eur || 0).toFixed(0)} €`;
-
-      const plantsTop = document.getElementById('soldeliaPlantsTop');
-      const plants = Array.isArray(stats.plantas_top) ? stats.plantas_top : [];
-      if (!plants.length) {
-        plantsTop.innerHTML = '<span class="px-2 py-1 rounded bg-slate-800 border border-slate-700">Sin datos</span>';
-        return;
-      }
-
-      plantsTop.innerHTML = plants
-        .map(name => `<span class="px-2 py-1 rounded bg-slate-800 border border-slate-700">${name}</span>`)
-        .join('');
-    }
-
-    function renderCustomHistory() {
-      const container = document.getElementById('customHistory');
-      if (!state.customSearches.length) {
-        container.innerHTML = '<p class="text-slate-400">Sin búsquedas custom todavía.</p>';
-        return;
-      }
-
-      container.innerHTML = '';
-      state.customSearches.slice(0, 30).forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'border border-slate-700 rounded p-2 bg-slate-900/60';
-        const when = new Date(item.created_at || '').toLocaleString();
-        const zone = item.type === 'polygon'
-          ? `Polígono @ centro (${Number(item.zone?.lat || 0).toFixed(4)}, ${Number(item.zone?.lng || 0).toFixed(4)}) r=${Number(item.zone?.radius_km || 0).toFixed(2)}km`
-          : `Círculo (${Number(item.zone?.lat || 0).toFixed(4)}, ${Number(item.zone?.lng || 0).toFixed(4)}) r=${Number(item.zone?.radius_km || 0).toFixed(2)}km`;
-        const ingestButton = item.json_path
-          ? `<span class="text-emerald-300 text-xs">Cargado: ${item.json_path}</span>`
-          : `<button class="ingest-custom-btn bg-emerald-700 hover:bg-emerald-600 px-2 py-1 rounded text-xs mt-1" data-csv="${item.csv_path || ''}">Cargar al pipeline</button>`;
-        div.innerHTML = `
-          <p class="font-semibold text-sky-200">${zone}</p>
-          <p class="text-xs text-slate-400">${when}</p>
-          <p class="text-xs">Leads: <span class="font-semibold">${item.lead_count || 0}</span></p>
-          <p class="text-xs text-slate-400 break-all">${item.csv_path || ''}</p>
-          ${ingestButton}
-        `;
-        container.appendChild(div);
-      });
-
-      container.querySelectorAll('.ingest-custom-btn').forEach(btn => {
-        btn.addEventListener('click', async (event) => {
-          const csvPath = event.currentTarget.getAttribute('data-csv') || '';
-          if (!csvPath) return;
-          event.currentTarget.disabled = true;
-          event.currentTarget.textContent = 'Cargando...';
-          try {
-            const response = await fetchJSON('/api/ingest_custom', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ csv_path: csvPath }),
-            });
-            const history = await fetchJSON('/api/custom_searches');
-            state.customSearches = history;
-            renderCustomHistory();
-            alert(`Ingest OK: ${response.lead_count || 0} leads -> ${response.json_path || '-'}`);
-          } catch (err) {
-            event.currentTarget.disabled = false;
-            event.currentTarget.textContent = 'Cargar al pipeline';
-            alert(`Error ingestando CSV custom: ${err.message}`);
-          }
-        });
-      });
-    }
-
-    function loadPlantSelector() {
-      const select = document.getElementById('customPlantSelect');
-      select.innerHTML = '<option value="">Automática (más cercana)</option>';
-      state.plants.forEach(p => {
-        const o = document.createElement('option');
-        o.value = p.id || p.name;
-        o.textContent = `${p.name} (${p.surplus ?? '-'}%)`;
-        select.appendChild(o);
-      });
-    }
-
-    async function loadData() {
-      const [leads, plants, stats, customSearches, soldeliaStats] = await Promise.all([
-        fetchJSON('/api/leads'),
-        fetchJSON('/api/plants'),
-        fetchJSON('/api/stats'),
-        fetchJSON('/api/custom_searches'),
-        fetchJSON('/api/stats/soldelia'),
-      ]);
-
-      state.leads = leads;
-      state.plants = plants;
-      state.customSearches = customSearches;
-
-      document.getElementById('tierA').textContent = Number(stats.tier_a || 0);
-      document.getElementById('tierB').textContent = Number(stats.tier_b || 0);
-      document.getElementById('tierC').textContent = Number(stats.tier_c || 0);
-      document.getElementById('discarded').textContent = Number(stats.discarded || 0);
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const todayCount = leads.filter(l => (l.started_at || '').slice(0, 10) === todayStr).length;
-      document.getElementById('todayCount').textContent = todayCount;
-
-      const allLeads = getAllLeads();
-      updateABTestSummary(allLeads);
-      renderSoldeliaStats(soldeliaStats);
-      setupFilters(allLeads);
-      applyFiltersAndRender();
-      renderCharts(stats);
-      loadPlantSelector();
-      renderCustomHistory();
-    }
-
-    function initMap() {
-      state.map = L.map('map').setView([40, -3.5], 6);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(state.map);
-
-      state.plantLayer = L.layerGroup().addTo(state.map);
-      state.leadLayer = L.layerGroup().addTo(state.map);
-      state.drawLayer = L.featureGroup().addTo(state.map);
-
-      state.plants.forEach(plant => {
-        if (plant.latitude == null || plant.longitude == null) return;
-        const marker = L.circleMarker([plant.latitude, plant.longitude], {
-          radius: 7,
-          color: '#ef4444',
-          fillColor: '#ef4444',
-          fillOpacity: 0.8,
-        }).bindPopup(`<strong>${plant.name}</strong><br/>Surplus: ${plant.surplus ?? '-'}%<br/>Potencia: ${plant.power_kw ?? '-'} kW`);
-        state.plantLayer.addLayer(marker);
-      });
-
-      state.drawControl = new L.Control.Draw({
-        draw: {
-          polyline: false,
-          rectangle: false,
-          marker: false,
-          circlemarker: false,
-          circle: {
-            shapeOptions: { color: '#38bdf8' },
-          },
-          polygon: {
-            allowIntersection: false,
-            shapeOptions: { color: '#22c55e' },
-          },
-        },
-        edit: {
-          featureGroup: state.drawLayer,
-          remove: true,
-        },
-      });
-      state.map.addControl(state.drawControl);
-
-      state.map.on(L.Draw.Event.CREATED, (event) => {
-        state.drawLayer.clearLayers();
-        const layer = event.layer;
-        state.drawLayer.addLayer(layer);
-
-        if (event.layerType === 'circle') {
-          const center = layer.getLatLng();
-          const radiusKm = layer.getRadius() / 1000;
-          state.activeShape = {
-            type: 'circle',
-            lat: center.lat,
-            lng: center.lng,
-          };
-          document.getElementById('customRadiusKm').value = radiusKm.toFixed(2);
-          document.getElementById('drawInfo').textContent = `Círculo: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)} · radio ${radiusKm.toFixed(2)} km`;
-        } else if (event.layerType === 'polygon') {
-          const coords = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
-          state.activeShape = { type: 'polygon', polygon: coords };
-          document.getElementById('customRadiusKm').value = '2.0';
-          document.getElementById('drawInfo').textContent = `Polígono con ${coords.length} puntos (se usará centroide)`;
-        }
-      });
-
-      state.map.on(L.Draw.Event.EDITED, (event) => {
-        event.layers.eachLayer(layer => {
-          if (layer instanceof L.Circle) {
-            const center = layer.getLatLng();
-            const radiusKm = layer.getRadius() / 1000;
-            state.activeShape = { type: 'circle', lat: center.lat, lng: center.lng };
-            document.getElementById('customRadiusKm').value = radiusKm.toFixed(2);
-            document.getElementById('drawInfo').textContent = `Círculo editado: ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)} · radio ${radiusKm.toFixed(2)} km`;
-          } else if (layer instanceof L.Polygon) {
-            const coords = layer.getLatLngs()[0].map(p => [p.lat, p.lng]);
-            state.activeShape = { type: 'polygon', polygon: coords };
-            if (!document.getElementById('customRadiusKm').value) {
-              document.getElementById('customRadiusKm').value = '2.0';
-            }
-            document.getElementById('drawInfo').textContent = `Polígono editado con ${coords.length} puntos (se usará centroide)`;
-          }
-        });
-      });
-
-      state.map.on(L.Draw.Event.DELETED, () => {
-        state.activeShape = null;
-        document.getElementById('drawInfo').textContent = 'Dibuja un círculo o polígono en el mapa.';
-      });
-    }
-
-    function renderMap(leads) {
-      if (!state.map) initMap();
-      state.leadLayer.clearLayers();
-
-      const plantsByName = Object.fromEntries(state.plants.map(p => [p.name, p]));
-      leads.forEach(lead => {
-        const plant = plantsByName[lead.plant_name];
-        if (!plant || plant.latitude == null || plant.longitude == null) return;
-
-        const lat = plant.latitude + hashOffset(String(lead.lead_id || lead.lead_name));
-        const lng = plant.longitude + hashOffset(String(lead.lead_id || lead.lead_name) + 'x');
-        const color = lead.is_custom_search ? '#38bdf8' : (lead.tier === 'A' ? '#22c55e' : lead.tier === 'B' ? '#eab308' : '#94a3b8');
-
-        const marker = L.circleMarker([lat, lng], {
-          radius: 6,
-          color,
-          fillColor: color,
-          fillOpacity: 0.9,
-        }).bindPopup(`<strong>${lead.lead_name}</strong><br/>Tier: ${lead.tier}<br/>Distancia: ${fmtDistance(lead.distance_km)}`);
-        marker.on('click', () => openLeadModal(lead));
-        state.leadLayer.addLayer(marker);
-      });
-    }
-
-    function renderTable(rows) {
-      const tbody = document.getElementById('leadsTable');
-      tbody.innerHTML = '';
-      document.getElementById('rowsCount').textContent = `${rows.length} resultados`;
-
-      rows.forEach(lead => {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-slate-800 hover:bg-slate-800/60 cursor-pointer';
-        tr.innerHTML = `
-          <td class="py-2 pr-2">${lead.lead_name}</td>
-          <td class="py-2 pr-2">${tierBadge(lead.tier)}</td>
-          <td class="py-2 pr-2">${lead.sector || '-'}</td>
-          <td class="py-2 pr-2">${lead.phone || ''}</td>
-          <td class="py-2 pr-2">${lead.plant_name || '-'}</td>
-          <td class="py-2 pr-2">${fmtDistance(lead.distance_km)}</td>
-          <td class="py-2 pr-2">${modelBadge(lead.manolo_model)}</td>
-          <td class="py-2 pr-2">${statusBadge(lead.status)}</td>
-        `;
-        tr.addEventListener('click', () => openLeadModal(lead));
-        tbody.appendChild(tr);
-      });
-    }
-
-    function applyFiltersAndRender() {
-      const tier = document.getElementById('filterTier').value;
-      const model = document.getElementById('filterModel').value;
-      const status = document.getElementById('filterStatus').value;
-      const plant = document.getElementById('filterPlant').value;
-      const sortBy = document.getElementById('sortBy').value;
-
-      let rows = [...getAllLeads()];
-
-      if (tier !== 'all') rows = rows.filter(l => l.tier === tier);
-      if (model !== 'all') rows = rows.filter(l => normalizeModel(l.manolo_model) === model);
-      if (status !== 'all') rows = rows.filter(l => l.status === status);
-      if (plant !== 'all') rows = rows.filter(l => l.plant_name === plant);
-
-      if (sortBy === 'priority') {
-        rows.sort((a, b) => {
-          const p = contactPriority(a) - contactPriority(b);
-          if (p !== 0) return p;
-          return (a.distance_km ?? 9999) - (b.distance_km ?? 9999);
-        });
-      } else if (sortBy === 'tier') {
-        rows.sort((a, b) => (tierRank[a.tier] ?? 99) - (tierRank[b.tier] ?? 99));
-      } else {
-        rows.sort((a, b) => (a.distance_km ?? 9999) - (b.distance_km ?? 9999));
-      }
-
-      state.filtered = rows;
-      renderTable(rows);
-      renderMap(rows);
-    }
-
-    function renderCharts(stats) {
-      const tierCtx = document.getElementById('tierChart');
-      const plantCtx = document.getElementById('plantChart');
-
-      if (state.tierChart) state.tierChart.destroy();
-      if (state.plantChart) state.plantChart.destroy();
-
-      state.tierChart = new Chart(tierCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Tier A', 'Tier B', 'Tier C', 'Descartados'],
-          datasets: [{
-            data: [stats.tier_a || 0, stats.tier_b || 0, stats.tier_c || 0, stats.discarded || 0],
-            backgroundColor: ['#22c55e', '#eab308', '#94a3b8', '#ef4444'],
-          }],
-        },
-        options: {
-          plugins: { legend: { labels: { color: '#cbd5e1' } } },
-        },
-      });
-
-      const sortedPlants = Object.entries(stats.leads_por_planta || {})
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 12);
-
-      state.plantChart = new Chart(plantCtx, {
-        type: 'bar',
-        data: {
-          labels: sortedPlants.map(([name]) => name),
-          datasets: [{
-            label: 'Leads',
-            data: sortedPlants.map(([, count]) => count),
-            backgroundColor: '#38bdf8',
-          }],
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: { ticks: { color: '#94a3b8' } },
-            y: { ticks: { color: '#94a3b8' }, beginAtZero: true },
-          },
-          plugins: { legend: { labels: { color: '#cbd5e1' } } },
-        },
-      });
-    }
-
-    function openLeadModal(lead) {
-      state.selectedLead = lead;
-      document.getElementById('modalLeadName').textContent = lead.lead_name;
-      document.getElementById('modalMeta').textContent = `${lead.tier} · ${lead.sector || '-'} · ${lead.plant_name || 'Sin planta'} · ${fmtDistance(lead.distance_km)}`;
-      document.getElementById('modalModelBadge').innerHTML = `Variantes generadas por: ${modelBadge(lead.manolo_model)}`;
-
-      const select = document.getElementById('leadStatusSelect');
-      select.value = ['pendiente', 'contactado', 'cerrado', 'no_interesa'].includes(lead.status) ? lead.status : 'pendiente';
-      select.disabled = Boolean(lead.is_custom_search);
-
-      const container = document.getElementById('messagesList');
-      const messages = getLeadMessages(lead);
-      container.innerHTML = messages.length ? '' : '<p class="text-slate-400">No hay variantes de Manolo para este lead.</p>';
-
-      messages.forEach((msg, idx) => {
-        const card = document.createElement('div');
-        card.className = 'bg-slate-900 border border-slate-700 rounded-lg p-3';
-        card.innerHTML = `
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="font-semibold">Variante ${idx + 1}: ${msg.variant || 'sin etiqueta'}</h4>
-            <button class="copy-btn bg-sky-700 hover:bg-sky-600 px-2 py-1 rounded text-xs" data-text="${(msg.message || '').replaceAll('"', '&quot;')}">Copiar</button>
+    async function renderPipeline() {
+      const data = await fetchJSON("/pipeline");
+      const root = document.getElementById("pipeline");
+      const items = data.funnel.filter(item =>
+        ["pending", "sms_sent", "whatsapp_received", "call_done", "visit_done", "study_sent", "proposal_sent", "closed_won"].includes(item.stage)
+      );
+      const max = Math.max(...items.map(item => item.count), 1);
+      root.innerHTML = items.map(item => `
+        <div class="grid grid-cols-[9rem_1fr_4rem] items-center gap-3 text-sm">
+          <span class="text-slate-300">${item.stage}</span>
+          <div class="pipeline-track">
+            <div class="pipeline-fill" style="width:${(item.count / max) * 100}%"></div>
           </div>
-          <p class="text-sm text-slate-100 whitespace-pre-wrap">${msg.message || '-'}</p>
-          <p class="text-xs text-slate-400 mt-2">CTA: ${msg.cta || '-'}</p>
-        `;
-        container.appendChild(card);
-      });
-
-      container.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const text = e.currentTarget.getAttribute('data-text') || '';
-          try {
-            await navigator.clipboard.writeText(text);
-            e.currentTarget.textContent = 'Copiado';
-            setTimeout(() => e.currentTarget.textContent = 'Copiar', 1200);
-          } catch {
-            alert('No se pudo copiar al portapapeles.');
-          }
-        });
-      });
-
-      document.getElementById('messagesModal').classList.remove('hidden');
-      document.getElementById('messagesModal').classList.add('flex');
+          <span class="text-right font-mono text-slate-300">${item.count}</span>
+        </div>
+      `).join("");
     }
 
-    async function updateLeadStatus(newStatus) {
-      if (!state.selectedLead || state.selectedLead.is_custom_search) return;
-      await fetchJSON(`/api/leads/${encodeURIComponent(state.selectedLead.lead_id)}/status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      const lead = state.leads.find(l => l.lead_id === state.selectedLead.lead_id);
-      if (lead) lead.status = newStatus;
-      state.selectedLead.status = newStatus;
-      applyFiltersAndRender();
+    async function renderLeads() {
+      const tier = document.getElementById("filter-tier").value;
+      const status = document.getElementById("filter-status").value;
+      let path = "/leads?limit=200";
+      if (tier) path += `&tier=${encodeURIComponent(tier)}`;
+      if (status) path += `&status=${encodeURIComponent(status)}`;
+      const data = await fetchJSON(path);
+      allLeads = data.leads;
+      document.getElementById("leads-count").textContent = `Mostrando ${data.leads.length} de ${data.total}`;
+      document.getElementById("leads-tbody").innerHTML = data.leads.map(lead => `
+        <tr class="lead-row border-b border-slate-800/80" onclick="showLead('${lead.lead_id}')">
+          <td class="py-3 pr-3">${tierBadge(lead.tier)}</td>
+          <td class="py-3 pr-3">${lead.lead_name || "-"}</td>
+          <td class="py-3 pr-3 text-slate-400">${lead.municipality || "-"}</td>
+          <td class="py-3 pr-3 text-xs text-slate-300">${lead.contact_status || "pending"}</td>
+        </tr>
+      `).join("");
     }
 
-    function mergeCustomLeads(newLeads) {
-      const byId = new Map(state.customLeads.map(l => [String(l.lead_id), l]));
-      newLeads.forEach(lead => {
-        byId.set(String(lead.lead_id), {
-          ...lead,
-          tier: lead.tier || 'C',
-          status: lead.status || 'pendiente',
-          is_custom_search: true,
-        });
+    async function renderMap() {
+      const data = await fetchJSON("/map");
+      if (!map) {
+        map = L.map("map").setView([data.center.lat, data.center.lng], 7);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap"
+        }).addTo(map);
+      }
+
+      mapLayers.forEach(layer => map.removeLayer(layer));
+      mapLayers = [];
+
+      data.plants.forEach(plant => {
+        const layer = L.circleMarker([plant.lat, plant.lng], {
+          radius: 8,
+          fillColor: "#14b86f",
+          color: "#a7f3d0",
+          weight: 1,
+          fillOpacity: 0.9
+        }).bindPopup(`<strong>${plant.name}</strong><br>${plant.municipality || ""}`);
+        layer.addTo(map);
+        mapLayers.push(layer);
       });
-      state.customLeads = [...byId.values()];
+
+      data.leads.forEach(lead => {
+        const colors = { A: "#dc2626", B: "#f97316", C: "#ca8a04", DISCARD: "#64748b" };
+        const layer = L.circleMarker([lead.lat, lead.lng], {
+          radius: 5,
+          fillColor: colors[lead.tier] || "#64748b",
+          color: "#e2e8f0",
+          weight: 1,
+          fillOpacity: 0.95
+        }).bindPopup(`<strong>${lead.name}</strong><br>Tier ${lead.tier || "-"}<br>${lead.contact_status || "pending"}`);
+        layer.addTo(map);
+        mapLayers.push(layer);
+      });
+
+      document.getElementById("plants-count").textContent = data.plants.length;
+      document.getElementById("leads-mapped-count").textContent = data.leads.length;
     }
 
-    async function executeCustomSearch() {
-      if (!state.activeShape) {
-        alert('Primero dibuja un círculo o polígono en el mapa.');
+    async function renderTimeline() {
+      const data = await fetchJSON("/timeline?days=7&limit=30");
+      const root = document.getElementById("timeline");
+      if (!data.events.length) {
+        root.innerHTML = `<p class="text-sm text-slate-400">No hay eventos recientes.</p>`;
         return;
       }
 
-      const btn = document.getElementById('customSearchBtn');
-      const spinner = document.getElementById('customSpinner');
-      const resultBox = document.getElementById('customResult');
-      const plantId = document.getElementById('customPlantSelect').value || null;
+      const icon = {
+        sms_sent: "SMS",
+        sms_failed: "FAIL",
+        whatsapp_received: "WA",
+        call_scheduled: "CALL",
+        call_done: "DONE",
+        visit_scheduled: "VISIT",
+        visit_done: "OK",
+        study_sent: "STUDY",
+        proposal_sent: "PROP",
+        closed_won: "WON",
+        closed_lost: "LOST",
+        note: "NOTE"
+      };
 
-      btn.disabled = true;
-      spinner.classList.remove('hidden');
-      resultBox.textContent = '';
+      root.innerHTML = data.events.map(event => `
+        <article class="rounded-2xl border border-slate-800 bg-slate-950/35 px-4 py-3">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-sm font-medium">${icon[event.event_type] || "EVT"} · ${(event.data && event.data.lead_name) || event.lead_id}</p>
+              <p class="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">${event.event_type}</p>
+            </div>
+            <span class="text-xs text-slate-400">${timeAgo(event.timestamp)}</span>
+          </div>
+        </article>
+      `).join("");
+    }
 
+    async function renderServices() {
+      const data = await fetchJSON("/services");
+      const items = [
+        { name: "Dashboard :8001", status: data.dashboard.status, detail: "API principal" },
+        { name: "Hermes WhatsApp :3000", status: data.hermes.status, detail: data.hermes.port ? `puerto ${data.hermes.port}` : "sin dato" },
+        { name: "Cron", status: data.cron.status, detail: `${(data.cron.tasks || []).length} tarea(s)` },
+        { name: "Crédito SMS", status: data.sms.credit !== null ? "up" : "unknown", detail: data.sms.credit !== null ? `${data.sms.credit} restantes` : "sin lectura" }
+      ];
+
+      document.getElementById("services").innerHTML = items.map(item => {
+        const cls = item.status === "up" || item.status === "active" ? "status-up" : item.status === "down" || item.status === "empty" ? "status-down" : "status-unknown";
+        return `
+          <div class="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/35 px-4 py-3 text-sm">
+            <div class="flex items-center gap-3">
+              <span class="status-dot ${cls}"></span>
+              <span>${item.name}</span>
+            </div>
+            <span class="text-slate-400">${item.detail}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function showLead(leadId) {
+      const lead = allLeads.find(item => item.lead_id === leadId);
+      if (!lead) return;
+      alert(
+        `${lead.lead_name}\n\n` +
+        `Tier: ${lead.tier}\n` +
+        `Estado: ${lead.contact_status}\n` +
+        `Municipio: ${lead.municipality || "-"}\n` +
+        `Sector: ${lead.sector || "-"}\n` +
+        `Planta: ${lead.plant_name || "-"}\n` +
+        `Distancia: ${lead.distance_km || "-"} km\n` +
+        `Teléfono: ${lead.phone || "-"}`
+      );
+    }
+
+    async function refreshAll() {
+      document.getElementById("last-update").textContent = "Actualizando...";
       try {
-        const radiusKm = Number(document.getElementById('customRadiusKm').value || '2');
-        const zoneType = state.activeShape.type === 'polygon' ? 'polygon' : 'circle';
-        const center = state.activeShape.type === 'polygon'
-          ? centroidFromPolygon(state.activeShape.polygon)
-          : { lat: state.activeShape.lat, lng: state.activeShape.lng };
-
-        const response = await fetchJSON('/api/search_custom_zone', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            lat: center.lat,
-            lng: center.lng,
-            radius_km: radiusKm,
-            plant_id: plantId,
-            zone_type: zoneType,
-          }),
-        });
-
-        const leads = Array.isArray(response.leads) ? response.leads : [];
-        mergeCustomLeads(leads);
-        const history = await fetchJSON('/api/custom_searches');
-        state.customSearches = history;
-        renderCustomHistory();
-
-        const allLeads = getAllLeads();
-        setupFilters(allLeads);
-        updateABTestSummary(allLeads);
-        applyFiltersAndRender();
-
-        resultBox.textContent = `OK: ${response.lead_count || 0} leads en ${response.csv_path || '-'} `;
-      } catch (err) {
-        resultBox.textContent = `Error: ${err.message}`;
-      } finally {
-        btn.disabled = false;
-        spinner.classList.add('hidden');
+        await Promise.all([
+          renderOverview(),
+          renderPipeline(),
+          renderLeads(),
+          renderMap(),
+          renderTimeline(),
+          renderServices()
+        ]);
+        document.getElementById("last-update").textContent = `Actualizado ${new Date().toLocaleTimeString("es-ES")}`;
+      } catch (error) {
+        document.getElementById("last-update").textContent = `Error: ${error.message}`;
       }
     }
 
-    function bindEvents() {
-      ['filterTier', 'filterModel', 'filterStatus', 'filterPlant', 'sortBy'].forEach(id => {
-        document.getElementById(id).addEventListener('change', applyFiltersAndRender);
-      });
+    document.getElementById("refresh-btn").addEventListener("click", refreshAll);
+    document.getElementById("filter-tier").addEventListener("change", renderLeads);
+    document.getElementById("filter-status").addEventListener("change", renderLeads);
 
-      document.getElementById('customSearchBtn').addEventListener('click', executeCustomSearch);
-
-      document.getElementById('closeModal').addEventListener('click', () => {
-        document.getElementById('messagesModal').classList.add('hidden');
-        document.getElementById('messagesModal').classList.remove('flex');
-      });
-
-      document.getElementById('messagesModal').addEventListener('click', (e) => {
-        if (e.target.id === 'messagesModal' || e.target.id === 'messagesOverlay') {
-          document.getElementById('messagesModal').classList.add('hidden');
-          document.getElementById('messagesModal').classList.remove('flex');
-        }
-      });
-
-      document.getElementById('leadStatusSelect').addEventListener('change', async (e) => {
-        try {
-          await updateLeadStatus(e.target.value);
-        } catch (err) {
-          alert(`No se pudo actualizar estado: ${err.message}`);
-        }
-      });
-    }
-
-    async function init() {
-      bindEvents();
-      try {
-        await loadData();
-      } catch (err) {
-        alert(`Error cargando dashboard: ${err.message}`);
-      }
-    }
-
-    init();
+    refreshAll();
+    setInterval(refreshAll, 30000);
   </script>
 </body>
 </html>
