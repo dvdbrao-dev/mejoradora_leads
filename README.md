@@ -1,24 +1,61 @@
 # Mejoradora Leads
 
-Pipeline B2B para generar, calificar, enriquecer y exportar leads orientados a
-la venta de membresias para comunidades solares y cambio de comercializadora.
+Pipeline B2B para captar, clasificar, enriquecer y activar leads orientados a
+comunidades solares Soldelia y cambio de comercializadora.
 
-VPS operativo: `dvdbrao@5.78.69.147`
-Repositorio: `dvdbrao-dev/mejoradora_leads`
+Estado auditado de referencia: `2026-04-23`
+
+- VPS operativo: `dvdbrao@5.78.69.147`
+- Repositorio: `dvdbrao-dev/mejoradora_leads`
+- Repo activo: `~/mejoradora_leads`
+- Vault Obsidian: `~/mejoradora-vault`
 
 ---
 
 ## Estado actual
 
-El proyecto esta desplegado en el VPS y ya tiene una separacion clara entre:
+El proyecto ya no se describe como `Openfang`. La identidad operativa vigente es
+`Mejoradora Leads`, con repo activo en `~/mejoradora_leads` y documentación
+operativa paralela en Obsidian.
+
+Situación confirmada el `2026-04-23`:
+
+- `410` leads auditados en `runs/`
+- `4` Tier A
+- `101` Tier B
+- `74` Tier C
+- `231` DISCARD
+- `390` leads con teléfono
+- `33` plantas Soldelia activas
+- dashboard operativo en `:8001`
+- cron semanal operativo
+- SMS engine integrado con Dinahosting
+- crédito SMS disponible: `50`
+- vault Obsidian con `149` notas
+
+El pipeline está funcional y el primer envío SMS está preparado, pendiente solo
+de ejecución operativa.
+
+---
+
+## Qué Hay Hoy
+
+El sistema convive con algunos elementos legacy, pero la base productiva actual
+ya está definida:
 
 - repo versionado en `~/mejoradora_leads`
-- runtime local en `~/mejoradora_leads_data`
 - entorno virtual Python en `~/mejoradora_leads/.venv`
 - variables de entorno centralizadas en `~/.env.mejoradora`
+- vault operativo en `~/mejoradora-vault`
+- runtime legado/auxiliar en `~/mejoradora_leads_data`
+- fallback legacy todavía existente en `~/openfang`
 
-El runtime operativo ya no debe vivir en git. Los inputs, runs, logs, backups y
-outputs se guardan fuera del repo.
+Punto importante:
+
+- aunque `MEJORADORA_LEADS_HOME` sigue existiendo, parte del código nuevo ya
+  resuelve paths desde el repo activo
+- el log SMS real no vive en `~/mejoradora_leads_data/logs/`
+- el log SMS real es `~/mejoradora_leads/data/logs/sms_sent.jsonl`
 
 ---
 
@@ -29,8 +66,10 @@ outputs se guardan fuera del repo.
 - OpenAI API
 - Google Places API
 - Crawl4AI
-- Node.js 22 para el piloto de WhatsApp Web
+- Node.js 22 para piloto/bridge de WhatsApp
+- Dinahosting API para SMS
 - Makefile operativo para tareas frecuentes
+- Obsidian vault para trazabilidad comercial y operativa
 
 Dependencias Python declaradas hoy en `requirements.txt`:
 
@@ -42,11 +81,13 @@ Dependencias Python declaradas hoy en `requirements.txt`:
 - `uvicorn[standard]`
 - `crawl4ai`
 
-Nota: `anthropic` no forma parte actualmente de `requirements.txt`.
+Nota:
+
+- `anthropic` no forma parte actualmente de `requirements.txt`
 
 ---
 
-## Layout real
+## Layout Real
 
 ### Repo
 
@@ -54,43 +95,50 @@ Nota: `anthropic` no forma parte actualmente de `requirements.txt`.
 ~/mejoradora_leads
 ├── Makefile
 ├── README.md
-├── requirements.txt
 ├── data/
-├── scripts/
-├── whatsapp/
 ├── dashboard/
+├── docs/
+├── scripts/
+├── schemas/
 ├── tests/
-├── inputs/
+├── whatsapp/
 ├── runs/
 └── outputs/
 ```
 
-### Runtime local
+### Vault
+
+```text
+~/mejoradora-vault
+├── Leads/
+├── Plantas/
+├── Sessions/
+├── Infraestructura/
+├── Procesos/
+├── Desarrollo/
+└── Scripts/
+```
+
+### Runtime legado / auxiliar
 
 ```text
 ~/mejoradora_leads_data
-├── README.md
 ├── backups/
 ├── inputs/
-│   ├── raw/
-│   └── cleaned/
 ├── logs/
 ├── outputs/
-│   ├── analysis/
-│   └── messages/
 └── runs/
 ```
 
 Regla vigente:
 
-- el repo contiene codigo, configuracion y documentacion
-- `~/mejoradora_leads_data` contiene datos operativos y artefactos del pipeline
+- el repo contiene código, configuración, datos versionados y documentación
+- el vault contiene seguimiento operativo, sesiones y notas comerciales
+- `~/mejoradora_leads_data` sigue existiendo para algunos flujos legacy
 
 ---
 
-## Variables de entorno
-
-Las API keys y paths ya no viven hardcodeadas en `~/.bashrc`.
+## Variables de Entorno
 
 Fuente activa actual:
 
@@ -105,8 +153,11 @@ Variables relevantes:
 - `GEMINI_API_KEY`
 - `OPENROUTER_API_KEY`
 - `NVIDIA_API_KEY`
+- `DINAHOSTING_USER`
+- `DINAHOSTING_PASS`
+- `DINAHOSTING_ACCOUNT`
 
-`~/.bashrc` solo hace:
+`~/.bashrc` puede limitarse a:
 
 ```bash
 source ~/.env.mejoradora
@@ -114,9 +165,9 @@ source ~/.env.mejoradora
 
 ---
 
-## Scripts principales
+## Scripts Principales
 
-Los scripts operativos actuales en `scripts/` son:
+Scripts operativos actuales en `scripts/`:
 
 - `scraper_solar.py`
 - `scraper_custom_zone.py`
@@ -127,39 +178,74 @@ Los scripts operativos actuales en `scripts/` son:
 - `export_contact_queue.py`
 - `export_mensajes.py`
 - `manage_plants.py`
-- `dashboard.py`
+- `sms_engine.py`
 - `validate_record.py`
 
 Soporte adicional:
 
 - `cron_scraper.sh`
 - `cron_solar.sh`
-- `start_dashboard.sh`
+- `cron_soldelia.sh`
+- `start_dashboard.sh` (`legacy`, sigue apuntando a `8080`)
+
+Dashboard productivo actual:
+
+- `dashboard/dashboard.py`
 
 ---
 
-## Flujo operativo actual
+## Flujo Operativo Actual
 
 Flujo base:
 
 1. captar leads con `scripts/scraper_solar.py` o `scripts/scraper_custom_zone.py`
-2. guardar bruto en `~/mejoradora_leads_data/inputs/raw/`
-3. normalizar e ingerir
-4. generar JSON limpios en `~/mejoradora_leads_data/inputs/cleaned/`
-5. rutear y clasificar con `scripts/route.py`
-6. generar runs en `~/mejoradora_leads_data/runs/`
-7. enriquecer con `scripts/enrich.py` y `scripts/enrich_web.py`
-8. exportar cola comercial y mensajes
+2. normalizar e ingerir
+3. rutear y clasificar con `scripts/route.py`
+4. enriquecer con `scripts/enrich.py` y `scripts/enrich_web.py`
+5. generar runs versionados en `runs/`
+6. exportar cola comercial
+7. preparar mensajes y primer contacto
+8. reflejar estado operativo en Obsidian
 
-La base de plantas actual vive en:
+Base de plantas vigente:
 
-- `data/plants.json`
+- `data/plants_soldelia.json`
+
+Estado auditado del dataset:
+
+- `33` plantas activas
+- `410` leads generados
+- `105` leads en Tier A+B
+- `390` leads con teléfono entre todos los tiers
 
 ---
 
-## Makefile operativo
+## Operación de Plantas y Leads
 
-El repo ya incluye `Makefile` con comandos principales:
+Resumen auditado a `2026-04-23`:
+
+- Plantas activas: `33`
+- Leads totales: `410`
+- Tier A: `4`
+- Tier B: `101`
+- Tier C: `74`
+- DISCARD: `231`
+- Con teléfono: `390`
+- Comisión estimada año 1 según dashboard: `5250 EUR`
+
+Las cinco plantas que aparecen primero en el dashboard actual son:
+
+- `CS Albacete I`
+- `CS Alcalá de Guadaíra I`
+- `CS Alcàsser I`
+- `CS Azuqueca de Henares I`
+- `CS Azuqueca de Henares II`
+
+---
+
+## Makefile Operativo
+
+El repo incluye `Makefile` con comandos principales:
 
 ```bash
 make help
@@ -176,15 +262,16 @@ make backup
 make test
 ```
 
-Comportamiento esperado:
+Notas importantes:
 
-- `make pipeline` toma el ultimo JSON disponible en `$(MEJORADORA_LEADS_HOME)/inputs/cleaned/`
+- `make pipeline` sigue apoyándose en `$(MEJORADORA_LEADS_HOME)` para ciertos flujos legacy
 - `make export` genera cola comercial filtrada
-- `make dashboard` expone FastAPI en puerto `8080`
+- `make dashboard` todavía apunta al flujo legacy en `8080`
+- la referencia operativa auditada para dashboard es `:8001`
 
 ---
 
-## Arranque rapido
+## Arranque Mínimo
 
 ### 1. Activar entorno
 
@@ -200,19 +287,27 @@ source ~/.env.mejoradora
 make help
 ```
 
-### 3. Arrancar dashboard
+### 3. Arrancar dashboard productivo
 
 ```bash
-make dashboard
+cd ~/mejoradora_leads/dashboard
+uvicorn dashboard:app --host 0.0.0.0 --port 8001
 ```
 
-### 4. Ejecutar pipeline sobre el ultimo cleaned
+### 4. Verificar dashboard
 
 ```bash
-make pipeline
+curl http://localhost:8001/api/stats/soldelia
 ```
 
-### 5. Exportar cola comercial
+### 5. Ejecutar dry-run de SMS Tier A
+
+```bash
+cd ~/mejoradora_leads
+python3 scripts/sms_engine.py --dry-run --tier A
+```
+
+### 6. Exportar cola comercial
 
 ```bash
 make export
@@ -220,55 +315,134 @@ make export
 
 ---
 
-## WhatsApp
+## SMS
 
-El piloto de WhatsApp sigue separado en `whatsapp/`.
+El motor SMS ya está integrado con Dinahosting en:
 
-Archivos relevantes:
+- `scripts/sms_engine.py`
 
-- `whatsapp/server.js`
-- `whatsapp/send.py`
-- `whatsapp/connect.js`
-- `whatsapp/connect2.js`
+Estado auditado:
 
-No se deben versionar sesiones ni caches de WhatsApp.
+- crédito disponible: `50`
+- log real: `data/logs/sms_sent.jsonl`
+- mensajes Tier A validados en `dry-run`
+- envíos reales todavía no ejecutados en el momento de esta auditoría
+
+Ejemplos:
+
+```bash
+python3 scripts/sms_engine.py --dry-run --tier A
+python3 scripts/sms_engine.py --tier A
+```
+
+Sincronización con vault:
+
+```bash
+python3 ~/mejoradora-vault/Scripts/sync_sms_status.py --vault ~/mejoradora-vault --log ~/mejoradora_leads/data/logs/sms_sent.jsonl --dry-run
+```
 
 ---
 
-## Estado de gitignore
+## Obsidian Vault
 
-El `.gitignore` actual ya excluye elementos sensibles u operativos como:
+El vault de Obsidian es parte del flujo operativo real.
+
+Estado auditado:
+
+- `149` notas totales
+- `4` notas Tier A
+- `101` notas Tier B
+- `33` notas de plantas
+
+Rutas relevantes:
+
+- `~/mejoradora-vault/Sessions/2026-04-23-STATUS.md`
+- `~/mejoradora-vault/Infraestructura/Accesos.md`
+- `~/mejoradora-vault/Procesos/Restaurar-Servicios.md`
+- `~/mejoradora-vault/Desarrollo/Próximos-Pasos.md`
+
+---
+
+## WhatsApp / Hermes
+
+El bridge de WhatsApp sigue separado del pipeline principal.
+
+Estado auditado:
+
+- configuración Hermes detectada en `~/.hermes/config.yaml`
+- logs detectados en `~/.hermes/logs/`
+- bridge detectado en `~/.hermes/whatsapp/`
+- no había procesos activos durante la auditoría
+
+Todavía falta documentar el arranque real y validar sesión viva antes de usarlo
+como canal operativo.
+
+---
+
+## Exportador
+
+El exportador comercial formal actual es:
+
+- `scripts/export_contact_queue.py`
+
+Su objetivo es sacar una cola pequeña, verificable y utilizable para operación
+manual antes de automatizar canales.
+
+---
+
+## Documentos Oficiales
+
+Referencias vivas del repo:
+
+- `ROADMAP.md`
+- `ARCHITECTURE_DECISIONS.md`
+- `PROJECT_STRUCTURE.md`
+- `docs/PRODUCT_ARCHITECTURE.md`
+- `BIBLE.md`
+- `CLEANUP_PLAN.md`
+
+Estos documentos deben prevalecer sobre notas históricas de etapas anteriores.
+
+---
+
+## Decisiones y Convivencia Legacy
+
+El proyecto sigue en transición controlada:
+
+- `~/openfang` existe todavía como fallback legacy
+- `~/mejoradora_leads_data` sigue siendo usado por partes del tooling anterior
+- el dashboard productivo actual ya no es el de `8080`
+- el punto de referencia actual para operación es `dashboard/dashboard.py` en `8001`
+- la identidad vigente del repositorio es `Mejoradora Leads`
+
+La regla práctica es:
+
+- usar `~/mejoradora_leads` como home activo
+- tratar `~/openfang` y parte de `*_data` como compatibilidad, no como fuente principal
+
+---
+
+## Estado de Gitignore
+
+El `.gitignore` excluye elementos sensibles u operativos como:
 
 - `.env`
 - `.venv/`
 - `__pycache__/`
-- `inputs/raw/`
-- `inputs/cleaned/*.json`
-- `runs/*.json`
 - `outputs/`
 - caches y sesiones de WhatsApp
+- runtime vivo no versionable
 
-La intencion sigue siendo mantener el runtime fuera del repo.
-
----
-
-## Estado real del entorno en abril de 2026
-
-Confirmado en el VPS:
-
-- disco saneado y con espacio libre suficiente
-- `python3.10-venv` instalado
-- `.venv` creada correctamente
-- imports `fastapi`, `openai` y `uvicorn` funcionando
-- `anthropic` no instalado por defecto
-- `make help` funcional
-- `Makefile` ya committeado en git
+Los `runs/*.json` actuales sí forman parte del estado auditado del repo y no deben
+tratarse automáticamente como basura operativa.
 
 ---
 
-## Proximos pasos recomendados
+## Próximos Pasos Recomendados
 
-- ajustar scripts para leer siempre de `MEJORADORA_LEADS_HOME`
-- revisar si `inputs/`, `runs/` y `outputs/` del repo deben quedarse solo como legacy
-- anadir `anthropic` a `requirements.txt` solo si vuelve a usarse
-- limpiar coincidencias de secretos dentro de `.venv` cuando no hagan falta paquetes pesados
+- ejecutar el primer envío real de SMS Tier A
+- sincronizar el vault tras ese envío
+- verificar y documentar arranque real de Hermes
+- revisar PRs abiertas `#1` y `#2`
+- alinear `Makefile` y `start_dashboard.sh` con el puerto operativo `8001`
+- seguir reduciendo supuestos legacy ligados a `openfang` y `*_data`
