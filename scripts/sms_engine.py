@@ -31,8 +31,8 @@ SMS_COOLDOWN_SECONDS = 30
 MAX_SMS_PER_SESSION = 50
 
 SMS_TEMPLATES = {
-    "A": "Hay energia solar a {distance} de {name}. 0,09€/kWh sin inversion. WhatsApp 613685560 para info.",
-    "B": "Pagas +300€/mes luz en {name}? Energia solar cerca, 0,09€/kWh. WhatsApp 613685560 para saber mas.",
+    "A": "Hay energia solar a {distance} de {name}. 0,09 EUR/kWh sin inversion. WhatsApp 613685560 para info.",
+    "B": "Pagas +300 EUR/mes luz en {name}? Energia solar cerca, 0,09 EUR/kWh. WhatsApp 613685560 para saber mas.",
 }
 
 PATHS = get_project_paths(Path(__file__))
@@ -86,7 +86,7 @@ def send_sms_dinahosting(phone: str, message: str, dry_run: bool = False) -> dic
             data={
                 "AUTH_USER": DINAHOSTING_USER,
                 "AUTH_PWD": DINAHOSTING_PASS,
-                "command": "Ia_Sms_Send_Bulk_Limited_Gsm7",
+                "command": "Sms_Send_Bulk_Limited_Gsm7",
                 "account": DINAHOSTING_ACCOUNT,
                 "contents": message,
                 "to[]": phone,
