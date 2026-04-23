@@ -29,3 +29,9 @@ runs/*.json
 
 # Outputs generados
 outputs/
+
+# Logs SMS generados
+data/logs/
+
+# Artefactos Codex
+.codex
