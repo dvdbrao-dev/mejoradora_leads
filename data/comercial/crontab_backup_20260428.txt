@@ -1,0 +1,1 @@
+0 8 * * 1 /home/dvdbrao/mejoradora_leads/scripts/cron_soldelia.sh >> /home/dvdbrao/mejoradora_leads/data/logs/cron_$(date +\%Y\%m\%d).log 2>&1
