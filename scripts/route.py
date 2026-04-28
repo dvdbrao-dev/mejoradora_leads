@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 route.py — Orquestador de agentes Openfang
-Toma leads limpios y los pasa por el pipeline: Paco → Esther → Manolo → Auditor
+Toma leads limpios y los pasa por el pipeline: Paco → Manolo
 Requiere: pip install openai
 """
 
@@ -211,32 +211,7 @@ def run_pipeline(lead: dict) -> dict:
         print("  📦 Tier C — guardado sin procesar")
         return run
 
-    # Tier B: Esther + Manolo, sin Auditor
-    # Tier A: Esther + Manolo + Auditor
-
-    # Paso 2: Esther coordina y genera requests para Manolo
-    esther_paco_context = sanitize_payload_for_manolo(paco_result)
-    esther_lead_context = sanitize_payload_for_manolo(lead)
-    esther_msg = f"""Paco ha analizado este lead y lo clasificó como Tier {tier} 
-con confidence {confidence}.
-
-Output de Paco:
-{json.dumps(esther_paco_context, ensure_ascii=False, indent=2)}
-
-Lead original:
-{json.dumps(esther_lead_context, ensure_ascii=False, indent=2)}
-
-Tu trabajo: decide qué variante debe escribir Manolo 
-(anti_venta, dolor_perdida o autoridad) y por qué.
-No repitas el análisis de Paco. Solo decide el enfoque."""
-    esther_result = call_openai_agent(
-        "esther",
-        esther_msg
-    )
-    run["esther"] = esther_result
-    print(f"  👩‍💼 Esther → {esther_result.get('exec_summary', '')[:80]}...")
-
-    # Paso 3: Manolo genera mensajes usando el manolo_request de Esther
+    # Paso 2: Manolo genera mensajes usando el análisis de Paco
     sanitized_lead_name = sanitize_text_for_manolo(str(lead.get("lead_name", "")))
     sanitized_sector = sanitize_text_for_manolo(str(lead.get("sector", "")))
     sanitized_address = sanitize_text_for_manolo(str(lead.get("address", "")))
@@ -245,9 +220,6 @@ No repitas el análisis de Paco. Solo decide el enfoque."""
     sanitized_distance = sanitize_text_for_manolo(str(lead.get("distance_km", "desconocida")))
     sanitized_power_kw = sanitize_text_for_manolo(str(lead.get("plant_power_kw", "desconocida")))
     sanitized_paco_why = sanitize_text_for_manolo(str(paco_result.get("why", "")))
-    esther_variant = "anti_venta"
-    if isinstance(esther_result.get("manolo_request"), dict):
-        esther_variant = sanitize_text_for_manolo(str(esther_result["manolo_request"].get("variant", "anti_venta")))
 
     manolo_msg = f"""Escribe 3 variantes de mensaje (anti_venta, dolor_perdida, 
 autoridad) para este lead.
@@ -264,7 +236,6 @@ Datos de la planta solar más cercana:
 - Potencia: {sanitized_power_kw} kW
 
 Contexto comercial de Paco (limpio): {sanitized_paco_why}
-Enfoque recomendado por Esther: {esther_variant}
 
 Genera exactamente 3 variantes. JSON válido y completo."""
     manolo_model = choose_manolo_model(tier)
@@ -285,19 +256,8 @@ Genera exactamente 3 variantes. JSON válido y completo."""
 
     print(f"  ✍️  Manolo → {len(msgs)} variante(s) generadas")
 
-    # Paso 4: Auditor revisa solo Tier A
-    if tier == "A":
-        auditor_result = call_openai_agent(
-            "auditor",
-            f"Audita este pipeline completo:\nLead: {json.dumps(lead, ensure_ascii=False, indent=2)}\nPaco: {json.dumps(paco_result, ensure_ascii=False, indent=2)}\nEsther: {json.dumps(esther_result, ensure_ascii=False, indent=2)}\nManolo: {json.dumps(manolo_result, ensure_ascii=False, indent=2)}\n\nSi no hay problemas graves, aprueba el lead.\nSolo marca requiere_revisión si hay incoherencia real entre el tier de Paco y el mensaje de Manolo."
-        )
-        run["auditor"] = auditor_result
-        approved = auditor_result.get("approved_for_send", False)
-        run["status"] = "aprobado" if approved else "requiere_revisión"
-        status_icon = "✅" if approved else "⚠️"
-    else:
-        run["status"] = "requiere_revisión"
-        status_icon = "⚠️"
+    run["status"] = "aprobado"
+    status_icon = "✅"
 
     run["finished_at"] = datetime.now(timezone.utc).isoformat()
     print(f"  {status_icon} Pipeline completado — Tier {tier} | {run['status']}")
@@ -308,7 +268,6 @@ Genera exactamente 3 variantes. JSON válido y completo."""
 def save_run(run: dict):
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
-    (OUTPUTS_DIR / "analysis").mkdir(parents=True, exist_ok=True)
     (OUTPUTS_DIR / "messages").mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -318,12 +277,6 @@ def save_run(run: dict):
     run_path = RUNS_DIR / f"{lead_slug}_{timestamp}.json"
     with open(run_path, "w", encoding="utf-8") as f:
         json.dump(run, f, ensure_ascii=False, indent=2)
-
-    # Análisis por separado
-    if "esther" in run:
-        analysis_path = OUTPUTS_DIR / "analysis" / f"{lead_slug}_{timestamp}.json"
-        with open(analysis_path, "w", encoding="utf-8") as f:
-            json.dump(run["esther"], f, ensure_ascii=False, indent=2)
 
     # Mensajes por separado
     if "manolo" in run:
