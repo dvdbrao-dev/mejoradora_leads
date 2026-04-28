@@ -8,6 +8,8 @@ import json
 import csv
 import uuid
 import argparse
+import re
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -16,22 +18,116 @@ RAW_DIR = BASE_DIR / "inputs" / "raw"
 CLEAN_DIR = BASE_DIR / "inputs" / "cleaned"
 
 SECTOR_MAP = {
-    "bar": "hostelería",
     "restaurante": "hostelería",
+    "restaurant": "hostelería",
+    "pizzería": "hostelería",
+    "pizzeria": "hostelería",
+    "asador": "hostelería",
+    "taberna": "hostelería",
+    "mesón": "hostelería",
+    "meson": "hostelería",
+    "venta": "hostelería",
+    "cervecería": "hostelería",
+    "cerveceria": "hostelería",
     "cafetería": "hostelería",
+    "cafeteria": "hostelería",
+    "chiringuito": "hostelería",
+    "marisquería": "hostelería",
+    "marisqueria": "hostelería",
+    "hamburguesería": "hostelería",
+    "kebab": "hostelería",
+    "wok": "hostelería",
+    "buffet": "hostelería",
+    "comedor": "hostelería",
+    "bar": "hostelería",
+
+    "hotel": "hotel",
+    "hostal": "hotel",
+    "pensión": "hotel",
+    "pension": "hotel",
+    "albergue": "hotel",
+    "aparthotel": "hotel",
+    "motel": "hotel",
+    "casa rural": "hotel",
+    "alojamiento": "hotel",
+
+    "bodega": "bodega",
+    "vinoteca": "bodega",
+    "almazara": "bodega",
+    "cooperativa": "bodega",
+    "vinícola": "bodega",
+    "vinicola": "bodega",
+
+    "gimnasio": "gimnasio",
+    "gym": "gimnasio",
+    "fitness": "gimnasio",
+    "sport": "gimnasio",
+    "polideportivo": "gimnasio",
+    "piscina": "gimnasio",
+
+    "clínica": "salud",
+    "clinica": "salud",
+    "hospital": "salud",
+    "residencia": "salud",
+    "centro médico": "salud",
+    "centro medico": "salud",
+    "dental": "salud",
+    "fisioterapia": "salud",
+    "veterinaria": "salud",
+    "farmacia": "salud",
+
     "taller": "taller",
     "mecánico": "taller",
-    "ayuntamiento": "ayuntamiento",
-    "comercio": "comercio",
+    "mecanico": "taller",
+    "chapa": "taller",
+    "pintura": "taller",
+    "automoción": "taller",
+    "automocion": "taller",
+    "carpintería": "taller",
+    "carpinteria": "taller",
+
+    "fábrica": "industria",
+    "fabrica": "industria",
+    "nave": "industria",
+    "almacén": "industria",
+    "almacen": "industria",
+    "logística": "industria",
+    "logistica": "industria",
+    "logístico": "industria",
+    "logistico": "industria",
+    "frigorífico": "industria",
+    "frigorifico": "industria",
+    "lavandería": "industria",
+    "lavanderia": "industria",
+    "distribución": "industria",
+    "distribucion": "industria",
+
+    "supermercado": "comercio",
     "tienda": "comercio",
+    "ferretería": "comercio",
+    "ferreteria": "comercio",
+    "bazar": "comercio",
+    "mercado": "comercio",
+    "droguería": "comercio",
+    "drogueria": "comercio",
+    "comercio": "comercio",
+
+    "ayuntamiento": "ayuntamiento",
+    "municipio": "ayuntamiento",
+    "diputación": "ayuntamiento",
+    "diputacion": "ayuntamiento",
+    "junta": "ayuntamiento",
+
     "finca": "administración_fincas",
     "comunidad": "administración_fincas",
-    "fábrica": "industria",
-    "nave": "industria",
 }
 
 ENERGY_SIGNALS = {
     "hostelería": "alto consumo probable",
+    "hotel": "alto consumo probable",
+    "bodega": "alto consumo probable",
+    "gimnasio": "alto consumo probable",
+    "salud": "alto consumo probable",
     "taller": "alto consumo probable",
     "industria": "alto consumo probable",
     "ayuntamiento": "consumo medio estimado",
@@ -42,11 +138,33 @@ ENERGY_SIGNALS = {
 }
 
 
-def normalize_sector(raw_sector: str) -> str:
-    raw = raw_sector.lower().strip()
-    for key, value in SECTOR_MAP.items():
-        if key in raw:
-            return value
+def _normalize_search_text(value) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple, set)):
+        value = " ".join(str(item) for item in value)
+    raw = str(value).casefold().strip()
+    return unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode("ascii")
+
+
+def _match_sector(value) -> str | None:
+    raw = _normalize_search_text(value)
+    for key, sector in SECTOR_MAP.items():
+        normalized_key = _normalize_search_text(key)
+        if len(normalized_key) <= 3:
+            pattern = rf"(?<![a-z0-9]){re.escape(normalized_key)}(?![a-z0-9])"
+            if re.search(pattern, raw):
+                return sector
+        elif normalized_key in raw:
+            return sector
+    return None
+
+
+def normalize_sector_v2(raw_sector, notes="", types="") -> str:
+    for value in (raw_sector, notes, types):
+        sector = _match_sector(value)
+        if sector:
+            return sector
     return "otro"
 
 
@@ -57,7 +175,11 @@ def generate_lead_id(name: str) -> str:
 
 
 def normalize_lead(raw: dict) -> dict:
-    sector = normalize_sector(raw.get("sector", "otro"))
+    sector = normalize_sector_v2(
+        raw.get("sector", "otro"),
+        raw.get("notes", ""),
+        raw.get("types", ""),
+    )
     now = datetime.now(timezone.utc).isoformat()
 
     lead = {
