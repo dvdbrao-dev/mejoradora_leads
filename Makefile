@@ -75,3 +75,16 @@ backup: ## Backup de runs e inputs a backups/
 
 test: ## Run tests
 	@source $(VENV) && python3 tests/test_dashboard.py
+
+# ═══════════════════════════════════════════════════════════════
+# CONTEXTO PERSISTENTE
+# ═══════════════════════════════════════════════════════════════
+
+brief: ## Regenera .context/STATE.md con estado actual
+	@./bin/brief
+
+context: ## Imprime contexto completo (para pegar a Claude.ai)
+	@cat AGENTS.md .context/PROJECT.md .context/DECISIONS.md .context/STATE.md
+
+decision: ## Abre DECISIONS.md para añadir entrada nueva
+	@nano .context/DECISIONS.md

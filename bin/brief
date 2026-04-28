@@ -1,0 +1,99 @@
+#!/bin/bash
+# Genera .context/STATE.md con estado mecánico extraído del repo.
+# Uso: ./bin/brief
+# El output también se imprime por stdout para copiar a un chat LLM.
+
+set -e
+cd "$(dirname "$0")/.."
+
+OUTPUT=".context/STATE.md"
+NOW=$(date '+%Y-%m-%d %H:%M %Z')
+
+# Conteos
+LINES_PY=$(find . -name "*.py" -not -path "./.git/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')
+NUM_SCRIPTS=$(ls scripts/*.py scripts/*.sh 2>/dev/null | wc -l | tr -d ' ')
+NUM_TESTS=$(ls tests/*.py 2>/dev/null | wc -l | tr -d ' ')
+NUM_LEADS=$(ls runs/*.json 2>/dev/null | grep -v -E "enriched|status|whatsapp|custom" | wc -l | tr -d ' ')
+NUM_PLANTS=$(grep -c '"plant_id"' data/plants_soldelia.json 2>/dev/null || echo "?")
+SMS_LOG_COUNT=$(wc -l < data/logs/sms_sent.jsonl 2>/dev/null | tr -d ' ' || echo "0")
+
+# Git
+GIT_BRANCH=$(git branch --show-current 2>/dev/null || echo "?")
+GIT_AHEAD=$(git status -sb 2>/dev/null | head -1 | sed 's/^## //' || echo "?")
+UNCOMMITTED=$(git status --short 2>/dev/null | wc -l | tr -d ' ')
+LAST_COMMITS=$(git log --oneline 2>/dev/null | head -8)
+
+# Cron
+CRON_ACTIVE=$(crontab -l 2>/dev/null | grep -v "^#" | grep -v "^$" || echo "ninguno")
+
+# Procesos
+PROCS=$(ps aux 2>/dev/null | grep -E "uvicorn|hermes|baileys" | grep -v grep | awk '{print $11" "$12" "$13}' | head -5 || true)
+if [ -z "$PROCS" ]; then
+  PROCS="ninguno"
+fi
+
+# Decisiones recientes
+RECENT_DECISIONS=$(grep "^## " .context/DECISIONS.md 2>/dev/null | head -5 || echo "(vacío)")
+
+cat > "$OUTPUT" << HEADER
+# STATE — Mejoradora Leads
+
+> AUTO-GENERADO por bin/brief el $NOW
+> NO editar a mano. Ejecutar \`./bin/brief\` para regenerar.
+
+## Repo
+
+- Branch: $GIT_BRANCH
+- Status: $GIT_AHEAD
+- Cambios sin commitear: $UNCOMMITTED archivos
+
+### Últimos 8 commits
+
+\`\`\`
+$LAST_COMMITS
+\`\`\`
+
+## Volumen de código
+
+- Líneas Python totales: $LINES_PY
+- Scripts en scripts/: $NUM_SCRIPTS
+- Tests: $NUM_TESTS
+
+## Datos operativos
+
+- Leads en runs/: $NUM_LEADS
+- Plantas Soldelia activas: $NUM_PLANTS
+- SMS enviados (log local): $SMS_LOG_COUNT
+
+## Crons activos
+
+\`\`\`
+$CRON_ACTIVE
+\`\`\`
+
+## Procesos detectados en VPS
+
+\`\`\`
+$PROCS
+\`\`\`
+
+## Últimas 5 decisiones
+
+\`\`\`
+$RECENT_DECISIONS
+\`\`\`
+
+## Pendientes urgentes (mantener manualmente)
+
+- [ ] Llamar Bodegas Castaño 968 79 11 15 (Yecla, planta CS Yecla I/II/III)
+- [ ] Cambiar password Dinahosting (sigue expuesta en chats)
+- [ ] Ejecutar Prompt Codex 2 — limpieza repo (Esther, Auditor, scrapers)
+- [ ] Ejecutar Prompt Codex 3 — SMS engine usa copy de Manolo
+- [ ] Filtrar 105 leads → 20 viables manualmente
+
+HEADER
+
+echo "✓ Generado $OUTPUT"
+echo ""
+echo "─────────────────────────────────────────"
+cat "$OUTPUT"
