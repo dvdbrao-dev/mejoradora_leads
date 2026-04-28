@@ -63,8 +63,7 @@ def _distance_label(distance_km: float | None) -> str:
     return f"{distance_km:.1f}km"
 
 
-def build_message(lead: dict[str, Any], tier: str) -> str:
-    """Construye un SMS manteniendo un maximo de 160 caracteres."""
+def _fallback_message(lead: dict[str, Any], tier: str) -> str:
     template = SMS_TEMPLATES.get(tier, SMS_TEMPLATES["B"])
     message = template.format(
         name=_safe_name(lead.get("lead_name")),
@@ -73,6 +72,74 @@ def build_message(lead: dict[str, Any], tier: str) -> str:
     if len(message) <= 160:
         return message
     return message[:157] + "..."
+
+
+def _normalize_manolo_variants(manolo_msgs: Any) -> dict[str, str]:
+    if isinstance(manolo_msgs, dict):
+        variants = [manolo_msgs]
+    elif isinstance(manolo_msgs, list):
+        variants = [item for item in manolo_msgs if isinstance(item, dict)]
+    else:
+        variants = []
+
+    normalized: dict[str, str] = {}
+    for variant in variants:
+        variant_type = str(variant.get("tipo") or variant.get("type") or "").strip()
+        message = str(variant.get("mensaje") or variant.get("message") or "").strip()
+        if variant_type and message:
+            normalized[variant_type] = " ".join(message.split())
+    return normalized
+
+
+def _with_whatsapp_cta(message: str) -> str | None:
+    clean = " ".join(str(message or "").split())
+    clean_lower = clean.lower()
+    if "613685560" in clean and ("whatsapp" in clean_lower or "wp" in clean_lower):
+        return clean
+
+    full_cta = " WhatsApp 613685560"
+    if len(clean + full_cta) <= 160:
+        return clean + full_cta
+
+    short_cta = " Wp 613685560"
+    if "613685560" not in clean and "whatsapp" not in clean_lower and len(clean + short_cta) <= 160:
+        return clean + short_cta
+
+    return None
+
+
+def build_message(lead: dict[str, Any], tier: str) -> str:
+    """Construye un SMS manteniendo un maximo de 160 caracteres."""
+    variants = _normalize_manolo_variants(lead.get("manolo_msgs"))
+    for variant_type in ("autoridad", "anti_venta"):
+        message = variants.get(variant_type)
+        if not message:
+            continue
+
+        with_cta = _with_whatsapp_cta(message)
+        if with_cta and len(with_cta) <= 160:
+            return with_cta
+
+    return _fallback_message(lead, tier)
+
+
+def _load_manolo_messages_by_lead_id() -> dict[str, Any]:
+    messages: dict[str, Any] = {}
+    for path in sorted(PATHS.runs.glob("*.json")):
+        if path.name in {"enriched.json", "lead_status.json", "whatsapp_sent.json", "custom_searches.json"}:
+            continue
+        try:
+            run = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(run, dict):
+            continue
+        lead = run.get("lead") if isinstance(run.get("lead"), dict) else {}
+        lead_id = str(run.get("lead_id") or lead.get("lead_id") or "").strip()
+        manolo = run.get("manolo")
+        if lead_id and manolo:
+            messages[lead_id] = manolo
+    return messages
 
 
 def send_sms_dinahosting(phone: str, message: str, dry_run: bool = False) -> dict[str, Any]:
@@ -151,6 +218,7 @@ def load_sent_phones() -> set[str]:
 def load_leads(tier_filter: str | None = None) -> list[dict[str, Any]]:
     """Carga leads contactables desde ContactQueue construido sobre runs validos."""
     queue_items = build_contact_queue_from_runs(PATHS.runs)
+    manolo_by_lead_id = _load_manolo_messages_by_lead_id()
     leads: list[dict[str, Any]] = []
 
     for item in queue_items:
@@ -171,6 +239,7 @@ def load_leads(tier_filter: str | None = None) -> list[dict[str, Any]]:
                 "tier": item.tier,
                 "distance_km": item.distance_km,
                 "contact_status": item.contact_status,
+                "manolo_msgs": manolo_by_lead_id.get(item.lead_id, []),
             }
         )
 
