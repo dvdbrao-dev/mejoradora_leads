@@ -170,7 +170,6 @@ source ~/.env.mejoradora
 Scripts operativos actuales en `scripts/`:
 
 - `scraper_solar.py`
-- `scraper_custom_zone.py`
 - `ingest.py`
 - `route.py`
 - `enrich.py`
@@ -198,7 +197,7 @@ Dashboard productivo actual:
 
 Flujo base:
 
-1. captar leads con `scripts/scraper_solar.py` o `scripts/scraper_custom_zone.py`
+1. captar leads con `scripts/scraper_solar.py`
 2. normalizar e ingerir
 3. rutear y clasificar con `scripts/route.py`
 4. enriquecer con `scripts/enrich.py` y `scripts/enrich_web.py`
