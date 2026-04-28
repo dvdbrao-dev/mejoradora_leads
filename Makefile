@@ -6,9 +6,12 @@
 
 SHELL := /bin/bash
 VENV := .venv/bin/activate
-DATA := $(MEJORADORA_LEADS_HOME)
+ROOT := $(CURDIR)
+DATA := $(ROOT)/data
+RUNS := $(ROOT)/runs
+INPUTS := $(ROOT)/inputs
 
-.PHONY: help install dashboard scrape pipeline enrich export status plants clean-logs backup test
+.PHONY: help install dashboard scrape pipeline enrich export review-csv status plants clean-logs backup test brief context decision
 
 help: ## Muestra este menu
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -20,8 +23,8 @@ install: ## Instala dependencias Python y Node (whatsapp)
 	cd whatsapp && npm install --silent 2>/dev/null || true
 	@echo "Dependencias instaladas OK"
 
-dashboard: ## Arranca el dashboard FastAPI en puerto 8080
-	source $(VENV) && uvicorn scripts.dashboard:app --host 0.0.0.0 --port 8080 --reload
+dashboard: ## Arranca el dashboard FastAPI en puerto 8001
+	source $(VENV) && uvicorn dashboard.dashboard:app --host 0.0.0.0 --port 8001 --reload
 
 scrape: ## Scraping solar con radio 5000m (plantas Soldelia activas)
 	source $(VENV) && python3 scripts/scraper_solar.py \
@@ -32,7 +35,7 @@ scrape: ## Scraping solar con radio 5000m (plantas Soldelia activas)
 		--min-surplus 0
 
 pipeline: ## Ejecuta pipeline completo sobre ultimo archivo cleaned
-	$(eval FILE := $(shell ls -t $(DATA)/inputs/cleaned/*.json 2>/dev/null | head -1))
+	$(eval FILE := $(shell ls -t $(INPUTS)/cleaned/*.json 2>/dev/null | head -1))
 	@if [ -z "$(FILE)" ]; then echo "ERROR: no hay archivos en inputs/cleaned/"; exit 1; fi
 	@echo "Procesando: $(FILE)"
 	source $(VENV) && python3 scripts/route.py $(FILE)
@@ -48,11 +51,13 @@ export: ## Exporta cola de contacto Tier A y B con telefono
 		--limit 100 \
 		--format both
 
+review-csv: ## Genera CSV de revision manual Tier A+B
+	source $(VENV) && python3 scripts/generate_review_csv.py
+
 status: ## Stats rapidas de runs (tiers, totales)
 	@source $(VENV) && python3 -c "\
-import json, glob, os; \
-data = os.environ.get('MEJORADORA_LEADS_HOME', os.path.expanduser('~/mejoradora_leads_data')); \
-runs = [f for f in glob.glob(f'{data}/runs/*.json') if not any(x in f for x in ['enriched','status','whatsapp','custom'])]; \
+import json, glob; \
+runs = [f for f in glob.glob('runs/*.json') if not any(x in f for x in ['enriched','status','whatsapp','custom'])]; \
 tiers = {}; \
 [tiers.update({json.load(open(r)).get('tier','?'): tiers.get(json.load(open(r)).get('tier','?'),0)+1}) for r in runs]; \
 print('TIERS:', tiers); \
@@ -69,8 +74,9 @@ clean-logs: ## Borra logs de mas de 30 dias
 	@echo "Logs antiguos borrados"
 
 backup: ## Backup de runs e inputs a backups/
+	mkdir -p $(DATA)/backups
 	tar -czf $(DATA)/backups/backup_$$(date +%Y%m%d_%H%M).tar.gz \
-		$(DATA)/runs/ $(DATA)/inputs/ 2>/dev/null
+		$(RUNS)/ $(INPUTS)/ 2>/dev/null
 	@echo "Backup creado en $(DATA)/backups/"
 
 test: ## Run tests
