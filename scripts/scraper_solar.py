@@ -38,6 +38,17 @@ CSV_COLUMNS = [
     "plant_surplus_pct",
     "distance_km",
 ]
+DEFAULT_INCLUDED_TYPES = [
+    "restaurant",
+    "bar",
+    "cafe",
+    "store",
+    "car_repair",
+    "city_hall",
+    "lodging",
+    "supermarket",
+    "storage",
+]
 
 
 def slugify(value: str) -> str:
@@ -107,6 +118,22 @@ def dedupe_rows(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     return out
 
 
+def load_excluded_place_ids(path: Path | None) -> set[str]:
+    if path is None:
+        return set()
+    if not path.exists():
+        raise FileNotFoundError(f"No existe el archivo de exclusión: {path}")
+
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, list):
+        return {clean_text(item) for item in data if clean_text(item)}
+    if isinstance(data, dict):
+        values = data.get("place_ids", [])
+        if isinstance(values, list):
+            return {clean_text(item) for item in values if clean_text(item)}
+    raise ValueError("El archivo de exclusión debe ser una lista JSON o un objeto con clave place_ids")
+
+
 def save_csv(rows: list[dict[str, str]]) -> Path:
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -153,7 +180,14 @@ def infer_sector_from_primary_type(primary_type_display_name: Any) -> str:
     return "otro"
 
 
-def fetch_nearby_places(api_key: str, latitude: float, longitude: float, radius: int, max_results: int) -> list[dict[str, Any]]:
+def fetch_nearby_places(
+    api_key: str,
+    latitude: float,
+    longitude: float,
+    radius: int,
+    max_results: int,
+    included_types: list[str],
+) -> list[dict[str, Any]]:
     url = "https://places.googleapis.com/v1/places:searchNearby"
     headers = {
         "Content-Type": "application/json",
@@ -165,17 +199,7 @@ def fetch_nearby_places(api_key: str, latitude: float, longitude: float, radius:
         ),
     }
     payload = {
-        "includedTypes": [
-            "restaurant",
-            "bar",
-            "cafe",
-            "store",
-            "car_repair",
-            "city_hall",
-            "lodging",
-            "supermarket",
-            "storage",
-        ],
+        "includedTypes": included_types,
         "maxResultCount": min(max_results, 20),
         "locationRestriction": {
             "circle": {
@@ -212,6 +236,16 @@ def main() -> int:
         default=0,
         help="Filtrar plantas con surplus_percentage menor a este valor",
     )
+    parser.add_argument(
+        "--exclude-place-ids",
+        default="",
+        help="JSON con place_id ya captados para excluirlos de la búsqueda",
+    )
+    parser.add_argument(
+        "--sectorial-search",
+        action="store_true",
+        help="Consultar cada tipo de negocio por separado para superar el límite de 20 resultados mezclados",
+    )
     args = parser.parse_args()
 
     if args.radius <= 0:
@@ -225,6 +259,15 @@ def main() -> int:
     if not plants_path.exists():
         print(f"❌ No existe el archivo de plantas: {plants_path}", file=sys.stderr)
         return 1
+
+    exclude_path = Path(args.exclude_place_ids) if args.exclude_place_ids else None
+    try:
+        excluded_place_ids = load_excluded_place_ids(exclude_path)
+    except Exception as exc:
+        print(f"❌ No se pudo cargar --exclude-place-ids: {exc}", file=sys.stderr)
+        return 1
+    if excluded_place_ids:
+        print(f"🚫 Excluyendo {len(excluded_place_ids)} place_id ya captados")
 
     plants = load_plants(plants_path, args.min_surplus)
     if args.plant_filter:
@@ -249,76 +292,94 @@ def main() -> int:
             f"— {len(plants_in_location)} plantas en esta ubicación"
         )
 
-        try:
-            places = fetch_nearby_places(
-                api_key=args.api_key,
-                latitude=lat,
-                longitude=lng,
-                radius=args.radius,
-                max_results=args.max_per_plant,
-            )
-        except Exception as exc:
-            print(f"⚠️ Error consultando Places API para {chosen_plant['plant_name']}: {exc}", file=sys.stderr)
-            continue
-
+        type_groups = [[item] for item in DEFAULT_INCLUDED_TYPES] if args.sectorial_search else [DEFAULT_INCLUDED_TYPES]
         idx = 0
-        for place in places:
-            place_name = clean_text(place.get("name", ""))
-            place_id = place_name.split("/")[-1] if place_name else ""
-            display_name = place.get("displayName", {})
-            lead_name = clean_text(display_name.get("text", "") if isinstance(display_name, dict) else display_name)
-            if not lead_name:
+        seen_place_ids: set[str] = set()
+        for included_types in type_groups:
+            type_label = ",".join(included_types)
+            if args.sectorial_search:
+                print(f"  🔎 Sector/tipo: {type_label}")
+            try:
+                places = fetch_nearby_places(
+                    api_key=args.api_key,
+                    latitude=lat,
+                    longitude=lng,
+                    radius=args.radius,
+                    max_results=args.max_per_plant,
+                    included_types=included_types,
+                )
+            except Exception as exc:
+                print(
+                    f"⚠️ Error consultando Places API para {chosen_plant['plant_name']} ({type_label}): {exc}",
+                    file=sys.stderr,
+                )
                 continue
 
-            address = clean_text(place.get("formattedAddress", ""))
-            municipality, province = infer_location(address, "")
-            phone = clean_text(place.get("nationalPhoneNumber", ""))
-            website = clean_text(place.get("websiteUri", ""))
-            notes_obj = place.get("primaryTypeDisplayName", {})
-            notes = clean_text(notes_obj.get("text", "") if isinstance(notes_obj, dict) else notes_obj)
-            sector = infer_sector_from_primary_type(notes_obj)
+            for place in places:
+                place_name = clean_text(place.get("name", ""))
+                place_id = place_name.split("/")[-1] if place_name else ""
+                if place_id and place_id in excluded_place_ids:
+                    continue
+                if place_id and place_id in seen_place_ids:
+                    continue
+                if place_id:
+                    seen_place_ids.add(place_id)
+                display_name = place.get("displayName", {})
+                lead_name = clean_text(display_name.get("text", "") if isinstance(display_name, dict) else display_name)
+                if not lead_name:
+                    continue
 
-            place_location = place.get("location", {}) or {}
-            place_lat = place_location.get("latitude")
-            place_lng = place_location.get("longitude")
-            if place_lat is None or place_lng is None:
-                distance_km = ""
-                distance_float = float("inf")
-            else:
-                distance_float = haversine_km(float(place_lat), float(place_lng), lat, lng)
-                distance_km = f"{distance_float:.3f}"
+                address = clean_text(place.get("formattedAddress", ""))
+                municipality, province = infer_location(address, "")
+                phone = clean_text(place.get("nationalPhoneNumber", ""))
+                website = clean_text(place.get("websiteUri", ""))
+                notes_obj = place.get("primaryTypeDisplayName", {})
+                notes = clean_text(notes_obj.get("text", "") if isinstance(notes_obj, dict) else notes_obj)
+                sector = infer_sector_from_primary_type(notes_obj)
 
-            row = {
-                "lead_name": lead_name,
-                "place_id": place_id,
-                "sector": sector,
-                "address": address,
-                "municipality": municipality,
-                "province": province,
-                "phone": phone,
-                "website": website,
-                "source": "google_maps_solar",
-                "notes": notes,
-                "plant_id": clean_text(chosen_plant["plant_id"]),
-                "plant_name": clean_text(chosen_plant["plant_name"]),
-                "plant_power_kw": clean_text(chosen_plant["plant_power_kw"]),
-                "plant_surplus_pct": f"{float(chosen_plant['plant_surplus_pct']):.2f}",
-                "distance_km": distance_km,
-            }
+                place_location = place.get("location", {}) or {}
+                place_lat = place_location.get("latitude")
+                place_lng = place_location.get("longitude")
+                if place_lat is None or place_lng is None:
+                    distance_km = ""
+                    distance_float = float("inf")
+                else:
+                    distance_float = haversine_km(float(place_lat), float(place_lng), lat, lng)
+                    distance_km = f"{distance_float:.3f}"
 
-            dedupe_key = (lead_name.lower(), address.lower())
-            current = best_by_business.get(dedupe_key)
-            if current is None:
-                best_by_business[dedupe_key] = row
-            else:
-                current_surplus = float(clean_text(current.get("plant_surplus_pct", "0")) or 0)
-                new_surplus = float(clean_text(row.get("plant_surplus_pct", "0")) or 0)
-                if new_surplus > current_surplus:
+                row = {
+                    "lead_name": lead_name,
+                    "place_id": place_id,
+                    "sector": sector,
+                    "address": address,
+                    "municipality": municipality,
+                    "province": province,
+                    "phone": phone,
+                    "website": website,
+                    "source": "google_maps_solar",
+                    "notes": notes,
+                    "plant_id": clean_text(chosen_plant["plant_id"]),
+                    "plant_name": clean_text(chosen_plant["plant_name"]),
+                    "plant_power_kw": clean_text(chosen_plant["plant_power_kw"]),
+                    "plant_surplus_pct": f"{float(chosen_plant['plant_surplus_pct']):.2f}",
+                    "distance_km": distance_km,
+                }
+
+                dedupe_key = (lead_name.lower(), address.lower())
+                current = best_by_business.get(dedupe_key)
+                if current is None:
                     best_by_business[dedupe_key] = row
+                else:
+                    current_surplus = float(clean_text(current.get("plant_surplus_pct", "0")) or 0)
+                    new_surplus = float(clean_text(row.get("plant_surplus_pct", "0")) or 0)
+                    if new_surplus > current_surplus:
+                        best_by_business[dedupe_key] = row
 
-            idx += 1
-            printable_distance = f"{distance_float:.1f}km" if distance_float != float("inf") else "n/d"
-            print(f"  ✓ {idx}/{args.max_per_plant} {lead_name} — {printable_distance}")
+                idx += 1
+                printable_distance = f"{distance_float:.1f}km" if distance_float != float("inf") else "n/d"
+                print(f"  ✓ {idx}/{args.max_per_plant} {lead_name} — {printable_distance}")
+                if idx >= args.max_per_plant:
+                    break
             if idx >= args.max_per_plant:
                 break
 
