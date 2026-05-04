@@ -1,0 +1,55 @@
+{
+  "lead_id": "bp_4b2c5f6f",
+  "lead_name": "bp",
+  "started_at": "2026-05-04T18:17:46.586051+00:00",
+  "lead": {
+    "lead_id": "bp_4b2c5f6f",
+    "lead_name": "bp",
+    "sector": "otro",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "GR-4400, A-92, Pk 1, 2, 18300 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 33 50 39",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Gas Station",
+    "created_at": "2026-05-04T18:16:21.498031+00:00",
+    "updated_at": "2026-05-04T18:16:21.498031+00:00",
+    "place_id": "ChIJ6e0DRf0Kcg0RbZmJABem7Mc",
+    "address": "GR-4400, A-92, Pk 1, 2, 18300 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "958 33 50 39",
+    "website": "https://map.bp.com/es-ES/ES/estacion-de-servicio/huetor-tajar/bp-abades-huetor-tajar/512505689",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "1.779"
+  },
+  "paco": {
+    "tier": "DISCARD",
+    "soldelia_fit": "none",
+    "comercializadora_fit": "low",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "No hay encaje con Soldelia debido a la actividad de gasolinera y la falta de datos clave.",
+      "comercializadora": "El cambio de comercializadora eléctrica podría ser de bajo interés."
+    },
+    "why": "El lead corresponde a una gasolinera, que no califica para el PPA colectivo de Soldelia. Además, no hay información suficiente sobre su consumo eléctrico.",
+    "missing_info": "Consumo anual y tipo de tarifa eléctrica.",
+    "next_action": "No contactar y archivar lead.",
+    "confidence_level": "HIGH"
+  },
+  "tier": "DISCARD",
+  "status": "descartado_por_paco"
+}

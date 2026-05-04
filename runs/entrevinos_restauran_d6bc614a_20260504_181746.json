@@ -1,0 +1,70 @@
+{
+  "lead_id": "entrevinos_restauran_d6bc614a",
+  "lead_name": "Entrevinos Restaurante/Brasería.",
+  "started_at": "2026-05-04T18:17:36.920694+00:00",
+  "lead": {
+    "lead_id": "entrevinos_restauran_d6bc614a",
+    "lead_name": "Entrevinos Restaurante/Brasería.",
+    "sector": "hostelería",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "C. Rafa Nadal, 7, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "858 81 23 39",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Restaurant",
+    "created_at": "2026-05-04T18:16:21.497708+00:00",
+    "updated_at": "2026-05-04T18:16:21.497708+00:00",
+    "place_id": "ChIJb5Yd_BkLcg0R0vWc4JA9Syo",
+    "address": "C. Rafa Nadal, 7, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "858 81 23 39",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "2.770"
+  },
+  "paco": {
+    "tier": "B",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El restaurante tiene potencial para beneficiarse de la energía solar durante el día.",
+      "comercializadora": "Cambio de comercializadora puede resultar en mejores tarifas para su consumo."
+    },
+    "why": "Es un restaurante, lo que sugiere un consumo diurno, pero falta información sobre el consumo anual y la tarifa eléctrica.",
+    "missing_info": "Consumo anual en kWh y tipo de tarifa eléctrica.",
+    "next_action": "Solicitar información sobre consumo eléctrico y tarifa.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "B",
+  "manolo_model": "gpt",
+  "manolo": [
+    {
+      "tipo": "anti_venta",
+      "mensaje": "Hay una planta solar a menos de 3 km de tu restaurante. Solo te informo que existe una opción que podría beneficiar a tu negocio."
+    },
+    {
+      "tipo": "dolor_perdida",
+      "mensaje": "Cada mes que pasa con tu tarifa actual, estás pagando más de lo necesario para climatización y cocina. Te ayudo a que eso cambie."
+    },
+    {
+      "tipo": "autoridad",
+      "mensaje": "Hay restaurantes cerca de ti que ya están pagando solo 0,09 euros/kWh. Es una opción que vale la pena considerar."
+    }
+  ],
+  "status": "aprobado",
+  "finished_at": "2026-05-04T18:17:46.585569+00:00"
+}

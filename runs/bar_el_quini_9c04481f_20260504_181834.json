@@ -1,0 +1,69 @@
+{
+  "lead_id": "bar_el_quini_9c04481f",
+  "lead_name": "Bar El Quini",
+  "started_at": "2026-05-04T18:18:25.158927+00:00",
+  "lead": {
+    "lead_id": "bar_el_quini_9c04481f",
+    "lead_name": "Bar El Quini",
+    "sector": "hostelería",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "C. Azorín, 2, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Restaurant",
+    "created_at": "2026-05-04T18:16:21.499080+00:00",
+    "updated_at": "2026-05-04T18:16:21.499080+00:00",
+    "place_id": "ChIJA7IrUwALcg0RComS97N-tnU",
+    "address": "C. Azorín, 2, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "1.912"
+  },
+  "paco": {
+    "tier": "B",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "Bar El Quini puede beneficiarse de una comunidad solar al tener espacio en el techo y estar ubicado cerca de una planta solar.",
+      "comercializadora": "El bar podría considerar un cambio de comercializadora para mejorar sus tarifas eléctricas."
+    },
+    "why": "El lead es un bar, que generalmente tiene consumo diurno, pero no se dispone de datos específicos sobre su consumo anual. Está ubicado a 1.9 km de una planta solar.",
+    "missing_info": "Consumo anual de electricidad.",
+    "next_action": "Contactar para obtener más información sobre el consumo eléctrico.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "B",
+  "manolo_model": "gpt",
+  "manolo": [
+    {
+      "tipo": "anti_venta",
+      "mensaje": "Hay una planta solar a menos de 2km de tu bar. Esto podría interesarte. Si me mandas la última factura, te digo en 5 minutos cuánto es el ahorro exacto."
+    },
+    {
+      "tipo": "dolor_perdida",
+      "mensaje": "Cada mes que pasa con tu tarifa actual, pagas más de lo necesario por la energía. A menos de 2km tienes una alternativa más económica. ¿Me envías tu factura eléctrica?"
+    },
+    {
+      "tipo": "autoridad",
+      "mensaje": "Ya hay bares en Huétor Tájar que están pagando 0,09 euros/kWh. Puedes sumar tu bar a esta tendencia. Mándame tu última factura y te hago el estudio sin compromiso."
+    }
+  ],
+  "status": "aprobado",
+  "finished_at": "2026-05-04T18:18:34.978787+00:00"
+}

@@ -1,0 +1,55 @@
+{
+  "lead_id": "cortijo_de_tajar_hot_5d626195",
+  "lead_name": "Cortijo de Tajar Hotel",
+  "started_at": "2026-05-04T18:17:00.874978+00:00",
+  "lead": {
+    "lead_id": "cortijo_de_tajar_hot_5d626195",
+    "lead_name": "Cortijo de Tajar Hotel",
+    "sector": "hotel",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "km 203, A-92, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 33 41 84",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Hotel",
+    "created_at": "2026-05-04T18:16:21.496764+00:00",
+    "updated_at": "2026-05-04T18:16:21.496764+00:00",
+    "place_id": "ChIJBb_eeVcKcg0R77kXlrdCeDo",
+    "address": "km 203, A-92, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "958 33 41 84",
+    "website": "https://www.cortijodetajar.es/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "0.976"
+  },
+  "paco": {
+    "tier": "DISCARD",
+    "soldelia_fit": "none",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El hotel se encuentra en un área con acceso a la planta solar, pero no cumple con los requisitos para ser un candidato adecuado.",
+      "comercializadora": "El hotel puede beneficiarse del cambio de comercializadora, aunque se necesita más información para evaluar su situación energética."
+    },
+    "why": "Aunque está cerca de la planta solar, el sector hotelero en este caso puede ser un descarte por ser parte de una cadena hotelera y no se especifica el tamaño o consumo anual necesario.",
+    "missing_info": "Incluir información sobre el consumo anual o si es un hotel independiente.",
+    "next_action": "Solicitar datos adicionales sobre el consumo energético del hotel.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "DISCARD",
+  "status": "descartado_por_paco"
+}

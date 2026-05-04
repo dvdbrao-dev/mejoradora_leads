@@ -1,0 +1,55 @@
+{
+  "lead_id": "hotel_vesci_faventia_91d088f2",
+  "lead_name": "Hotel Vesci Faventia",
+  "started_at": "2026-05-04T18:17:05.768040+00:00",
+  "lead": {
+    "lead_id": "hotel_vesci_faventia_91d088f2",
+    "lead_name": "Hotel Vesci Faventia",
+    "sector": "hotel",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "Cortijo Pozo Villa, 37, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "623 12 25 94",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Hotel",
+    "created_at": "2026-05-04T18:16:21.496930+00:00",
+    "updated_at": "2026-05-04T18:16:21.496930+00:00",
+    "place_id": "ChIJ_zveP1sLcg0RYjVRWY7jnjw",
+    "address": "Cortijo Pozo Villa, 37, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "623 12 25 94",
+    "website": "http://www.vescifaventia.es/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "1.603"
+  },
+  "paco": {
+    "tier": "DISCARD",
+    "soldelia_fit": "none",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "No aplica debido a la falta de requisitos de encaje para Soldelia.",
+      "comercializadora": "Podría haber una oportunidad de optimizar su tarifa eléctrica actual."
+    },
+    "why": "El lead es un hotel, pero sin información sobre su consumo anual. Además, la actividad hotelera no se ajusta con los requisitos para encajar en PPA colectivo Soldelia.",
+    "missing_info": "Datos sobre su consumo anual y tipo de tarifa eléctrica.",
+    "next_action": "Contactar para obtener más información sobre el consumo anual y tarifa eléctrica.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "DISCARD",
+  "status": "descartado_por_paco"
+}

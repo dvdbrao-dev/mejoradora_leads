@@ -1,0 +1,71 @@
+{
+  "lead_id": "restaurante_asador_p_8770cfce",
+  "lead_name": "RESTAURANTE ASADOR PANILLA",
+  "started_at": "2026-05-04T18:17:28.748855+00:00",
+  "lead": {
+    "lead_id": "restaurante_asador_p_8770cfce",
+    "lead_name": "RESTAURANTE ASADOR PANILLA",
+    "sector": "hostelería",
+    "location": {
+      "municipality": "Loja",
+      "province": "Granada",
+      "address": "C. Fábrica, 18360 Loja, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 33 22 29",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Restaurant",
+    "created_at": "2026-05-04T18:16:21.497571+00:00",
+    "updated_at": "2026-05-04T18:16:21.497571+00:00",
+    "place_id": "ChIJMbB_lu8Kcg0R0iscPef2lRs",
+    "address": "C. Fábrica, 18360 Loja, Granada, Spain",
+    "municipality": "Loja",
+    "province": "Granada",
+    "phone": "958 33 22 29",
+    "website": "https://restauranteasadorpanilla.shop/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "4.538"
+  },
+  "paco": {
+    "tier": "B",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El restaurante tiene potencial de aprovechar la energía solar debido a su consumo diurno.",
+      "comercializadora": "Puede beneficiarse de un cambio de comercializadora para mejorar sus tarifas."
+    },
+    "why": "Es un restaurante que podría tener un consumo significativo, pero falta información sobre el consumo anual exacto y la tarifa eléctrica.",
+    "missing_info": "Consumo anual en kWh y tipo de tarifa eléctrica.",
+    "next_action": "Contactar para obtener más información sobre el consumo y la tarifa eléctrica.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "B",
+  "manolo_model": "gpt",
+  "manolo": [
+    {
+      "tipo": "anti_venta",
+      "mensaje": "Hay una planta solar a menos de 5km de tu restaurante. Me gustaría compartir contigo cómo podrías beneficiarte de esta opción sin cambiar de comercializadora."
+    },
+    {
+      "tipo": "dolor_perdida",
+      "mensaje": "Cada mes que pasa con tu tarifa actual, pagas más de lo necesario en electricidad para tu cocina y aire acondicionado. En menos de 5km hay una alternativa interesante."
+    },
+    {
+      "tipo": "authority",
+      "mensaje": "Hay restaurantes en tu zona que ya están pagando 0,09 euros/kWh. Me encantaría ayudarte a ver si podrías hacer lo mismo. ¿Me mandas la última factura eléctrica?"
+    }
+  ],
+  "status": "aprobado",
+  "finished_at": "2026-05-04T18:17:36.919676+00:00"
+}

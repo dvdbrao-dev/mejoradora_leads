@@ -1,0 +1,70 @@
+{
+  "lead_id": "restaurante_pizzería_519f9d71",
+  "lead_name": "Restaurante pizzería CJ.",
+  "started_at": "2026-05-04T18:17:53.792914+00:00",
+  "lead": {
+    "lead_id": "restaurante_pizzería_519f9d71",
+    "lead_name": "Restaurante pizzería CJ.",
+    "sector": "hostelería",
+    "location": {
+      "municipality": "Huétor-Tájar",
+      "province": "Granada",
+      "address": "18360 Huétor-Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 49 34 65",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Restaurant",
+    "created_at": "2026-05-04T18:16:21.498345+00:00",
+    "updated_at": "2026-05-04T18:16:21.498345+00:00",
+    "place_id": "ChIJDzz3tAwLcg0Rs12ddELClu4",
+    "address": "18360 Huétor-Tájar, Granada, Spain",
+    "municipality": "Huétor-Tájar",
+    "province": "Granada",
+    "phone": "958 49 34 65",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "2.778"
+  },
+  "paco": {
+    "tier": "B",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El restaurante tiene una localización adecuada y una actividad posible durante el día, lo que sugiere un buen encaje con el PPA de Soldelia.",
+      "comercializadora": "El responsable debe evaluar los planes de energía disponibles para optimizar sus costos eléctricos."
+    },
+    "why": "El lead es un restaurante, lo que sugiere un consumo significativo, pero falta información específica sobre el consumo anual. Está dentro del radio de 5 km de la planta solar.",
+    "missing_info": "Consumo anual estimado en kWh.",
+    "next_action": "Contactar para obtener más información sobre el consumo y la tarifa eléctrica.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "B",
+  "manolo_model": "gpt",
+  "manolo": [
+    {
+      "tipo": "anti_venta",
+      "mensaje": "Hay una planta solar a menos de 3km de tu restaurante. Solo te informo que puedes acceder a energía solar a un precio muy competitivo, sin necesidad de cambiar de proveedor."
+    },
+    {
+      "tipo": "dolor_perdida",
+      "mensaje": "Cada mes que pasa con tu tarifa actual, pagas más de lo que deberías en electricidad para tu cocina y cámaras frigoríficas. Hay una alternativa a menos de 3km que podría cambiar esa situación."
+    },
+    {
+      "tipo": "autoridad",
+      "mensaje": "Hay restaurantes cerca de ti que ya están pagando solo 0,09 euros/kWh. Es una opción que te podría interesar para mejorar tus costes operativos."
+    }
+  ],
+  "status": "aprobado",
+  "finished_at": "2026-05-04T18:18:02.495679+00:00"
+}

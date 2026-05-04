@@ -1,0 +1,70 @@
+{
+  "lead_id": "área_de_servicio_veg_a10b2e9f",
+  "lead_name": "Área de servicio Vega Poniente",
+  "started_at": "2026-05-04T18:16:46.378430+00:00",
+  "lead": {
+    "lead_id": "área_de_servicio_veg_a10b2e9f",
+    "lead_name": "Área de servicio Vega Poniente",
+    "sector": "hostelería",
+    "location": {
+      "municipality": "",
+      "province": "Granada",
+      "address": "A-92, Km200, 18360, 18360 Granada, Spain"
+    },
+    "contact": {
+      "phone": "644 54 10 92",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Restaurant",
+    "created_at": "2026-05-04T18:16:21.495880+00:00",
+    "updated_at": "2026-05-04T18:16:21.495880+00:00",
+    "place_id": "ChIJk8eZ2mYLcg0RPZCsoRuW0_w",
+    "address": "A-92, Km200, 18360, 18360 Granada, Spain",
+    "province": "Granada",
+    "phone": "644 54 10 92",
+    "website": "https://vegaponiente.com/pdf/carta-restaurante.pdf",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "3.240"
+  },
+  "paco": {
+    "tier": "B",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El área de servicio tiene un consumo alto probable y está posicionada para beneficiarse de la energía solar diurna.",
+      "comercializadora": "Puede ser ventajoso cambiar de comercializadora para optimizar costes energéticos."
+    },
+    "why": "Es un restaurante, lo que sugiere un consumo significativo, pero se requiere más información sobre el consumo anual para una calificación exacta.",
+    "missing_info": "Datos sobre consumo anual de energía.",
+    "next_action": "Solicitar información sobre el consumo anual de energía.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "B",
+  "manolo_model": "gpt",
+  "manolo": [
+    {
+      "tipo": "anti_venta",
+      "mensaje": "Hay una planta solar a menos de 3km de tu restaurante. Solo te informo de que hay una alternativa disponible, sin necesidad de cambiar de comercializadora."
+    },
+    {
+      "tipo": "dolor_perdida",
+      "mensaje": "Cada mes que pasa con tu tarifa actual en la hostelería, pagas más de lo necesario. Conocer el costo exacto de tu energía puede ayudarte a tomar mejores decisiones."
+    },
+    {
+      "tipo": "autoridad",
+      "mensaje": "Otros restaurantes de la zona ya están pagando 0,09 euros/kWh. Aprovechar esta opción puede ser beneficioso para tu negocio. ¿Me mandas la última factura?"
+    }
+  ],
+  "status": "aprobado",
+  "finished_at": "2026-05-04T18:16:54.779710+00:00"
+}

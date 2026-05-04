@@ -1,0 +1,55 @@
+{
+  "lead_id": "ceferino_cervera_|_m_d778d3e4",
+  "lead_name": "CEFERINO CERVERA | Materiales de Construcción en Granada",
+  "started_at": "2026-05-04T18:18:08.108619+00:00",
+  "lead": {
+    "lead_id": "ceferino_cervera_|_m_d778d3e4",
+    "lead_name": "CEFERINO CERVERA | Materiales de Construcción en Granada",
+    "sector": "comercio",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "Antigua Crta. Málaga-Granada, Venta Nueva, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 33 50 43",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "consumo medio estimado",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Building Materials Store",
+    "created_at": "2026-05-04T18:16:21.498618+00:00",
+    "updated_at": "2026-05-04T18:16:21.498618+00:00",
+    "place_id": "ChIJ64aRrwILcg0RK6Zgfrsehuw",
+    "address": "Antigua Crta. Málaga-Granada, Venta Nueva, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "958 33 50 43",
+    "website": "https://ceferinocerveraehijos.es/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "1.932"
+  },
+  "paco": {
+    "tier": "C",
+    "soldelia_fit": "low",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El negocio está ubicado cerca de una planta solar Soldelia, pero su consumo es presumiblemente bajo.",
+      "comercializadora": "Puede beneficiarse de un cambio de comercializadora al buscar mejores tarifas energéticas."
+    },
+    "why": "El lead es un comercio de materiales de construcción, presumiblemente con un consumo anual inferior a 30.000 kWh y se encuentra dentro del radio de la planta solar.",
+    "missing_info": "Consumo anual estimado.",
+    "next_action": "Solicitar información sobre el consumo energético anual.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "C",
+  "status": "tier_c_en_espera"
+}

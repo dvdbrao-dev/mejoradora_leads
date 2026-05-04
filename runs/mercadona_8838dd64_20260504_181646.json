@@ -1,0 +1,55 @@
+{
+  "lead_id": "mercadona_8838dd64",
+  "lead_name": "Mercadona",
+  "started_at": "2026-05-04T18:16:41.411359+00:00",
+  "lead": {
+    "lead_id": "mercadona_8838dd64",
+    "lead_name": "Mercadona",
+    "sector": "comercio",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "C. Ing. Francisco Abellán, 58, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 14 18 51",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "consumo medio estimado",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Supermarket",
+    "created_at": "2026-05-04T18:16:21.495733+00:00",
+    "updated_at": "2026-05-04T18:16:21.495733+00:00",
+    "place_id": "ChIJjSdjMt0Kcg0RPYCeex5FtEw",
+    "address": "C. Ing. Francisco Abellán, 58, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "958 14 18 51",
+    "website": "https://www.mercadona.es/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "2.226"
+  },
+  "paco": {
+    "tier": "DISCARD",
+    "soldelia_fit": "none",
+    "comercializadora_fit": "low",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "No aplica debido a que es una gran superficie.",
+      "comercializadora": "Pueden considerar un cambio de comercializadora, pero es una gran superficie."
+    },
+    "why": "Mercadona es una gran superficie, lo que clasifica el lead como DISCARD. No se ajusta a los criterios de calificación.",
+    "missing_info": "N/A",
+    "next_action": "No contactar",
+    "confidence_level": "HIGH"
+  },
+  "tier": "DISCARD",
+  "status": "descartado_por_paco"
+}

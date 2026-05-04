@@ -1,0 +1,71 @@
+{
+  "lead_id": "restaurante_atracón__460646f3",
+  "lead_name": "Restaurante Atracón Huétor Tájar",
+  "started_at": "2026-05-04T18:17:09.379387+00:00",
+  "lead": {
+    "lead_id": "restaurante_atracón__460646f3",
+    "lead_name": "Restaurante Atracón Huétor Tájar",
+    "sector": "otro",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "Calle Prolongación Ronda Norte, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 33 29 57",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Pizza Delivery",
+    "created_at": "2026-05-04T18:16:21.497279+00:00",
+    "updated_at": "2026-05-04T18:16:21.497279+00:00",
+    "place_id": "ChIJv3Ch3uUKcg0RoP3cPm9XEYI",
+    "address": "Calle Prolongación Ronda Norte, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "958 33 29 57",
+    "website": "https://atraconhuetor.es/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "2.804"
+  },
+  "paco": {
+    "tier": "B",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El restaurante opera en un municipio cercano a una planta solar, lo que puede generar un buen ahorro en su factura eléctrica.",
+      "comercializadora": "El cambio de comercializadora podría resultar en tarifas más competitivas para sus necesidades energéticas."
+    },
+    "why": "Restaurante con actividad diurna preferente que podría tener un consumo anual superior a 30.000 kWh, sin datos suficientes para estimar. Está ubicado a menos de 5 km de una planta solar Soldelia.",
+    "missing_info": "El consumo anual de energía del restaurante.",
+    "next_action": "Contactar para obtener información sobre el consumo anual de energía.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "B",
+  "manolo_model": "gpt",
+  "manolo": [
+    {
+      "tipo": "anti_venta",
+      "mensaje": "Hay una planta solar a menos de 3km de tu restaurante. Te puede interesar saber que existe una opción de energía a un precio diferente."
+    },
+    {
+      "tipo": "dolor_perdida",
+      "mensaje": "Cada mes que pasa con tu tarifa actual pagas más de lo necesario. Estás a menos de 3km de una planta solar que puede cambiar eso."
+    },
+    {
+      "tipo": "authority",
+      "mensaje": "Otros restaurantes cercanos ya están pagando 0,09 euros/kWh. No te quedes atrás, te ayudo a analizar tu factura."
+    }
+  ],
+  "status": "aprobado",
+  "finished_at": "2026-05-04T18:17:19.389764+00:00"
+}

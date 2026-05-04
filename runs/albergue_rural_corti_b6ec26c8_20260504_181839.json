@@ -1,0 +1,54 @@
+{
+  "lead_id": "albergue_rural_corti_b6ec26c8",
+  "lead_name": "Albergue Rural Cortijo del Guarda",
+  "started_at": "2026-05-04T18:18:34.979710+00:00",
+  "lead": {
+    "lead_id": "albergue_rural_corti_b6ec26c8",
+    "lead_name": "Albergue Rural Cortijo del Guarda",
+    "sector": "otro",
+    "location": {
+      "municipality": "Villanueva Mesía",
+      "province": "Granada",
+      "address": "Casa del Guarda, Lugar Cortijo del Guarda, 1, 18369 Villanueva Mesía, Granada, Spain"
+    },
+    "contact": {
+      "phone": "",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Lodging",
+    "created_at": "2026-05-04T18:16:21.499433+00:00",
+    "updated_at": "2026-05-04T18:16:21.499433+00:00",
+    "place_id": "ChIJse-AQAALcg0Re4piGGdlDno",
+    "address": "Casa del Guarda, Lugar Cortijo del Guarda, 1, 18369 Villanueva Mesía, Granada, Spain",
+    "municipality": "Villanueva Mesía",
+    "province": "Granada",
+    "website": "https://citysp.cyou/albergue-rural-cortijo-b3nuf6",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "3.516"
+  },
+  "paco": {
+    "tier": "DISCARD",
+    "soldelia_fit": "none",
+    "comercializadora_fit": "low",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "No se considera debido a la falta de datos relevantes y al tipo de actividad.",
+      "comercializadora": "Bajo encaje dada la naturaleza del negocio."
+    },
+    "why": "El lead corresponde a un albergue rural, que no cumple con los requisitos para ser considerado en el proyecto solar. Además, la actividad de alojamiento no se ajusta a las preferencias de consumo diurno.",
+    "missing_info": "Datos sobre consumo anual y tipo de tarifa eléctrica.",
+    "next_action": "Recopilar más información sobre el consumo y tarifas para una posible reevaluación.",
+    "confidence_level": "HIGH"
+  },
+  "tier": "DISCARD",
+  "status": "descartado_por_paco"
+}

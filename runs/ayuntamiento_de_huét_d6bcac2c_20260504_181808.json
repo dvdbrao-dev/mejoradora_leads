@@ -1,0 +1,55 @@
+{
+  "lead_id": "ayuntamiento_de_huét_d6bcac2c",
+  "lead_name": "Ayuntamiento de Huétor Tájar",
+  "started_at": "2026-05-04T18:18:02.496242+00:00",
+  "lead": {
+    "lead_id": "ayuntamiento_de_huét_d6bcac2c",
+    "lead_name": "Ayuntamiento de Huétor Tájar",
+    "sector": "ayuntamiento",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "Pl. Pósito, 11, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 33 21 11",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "consumo medio estimado",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "City Hall",
+    "created_at": "2026-05-04T18:16:21.498482+00:00",
+    "updated_at": "2026-05-04T18:16:21.498482+00:00",
+    "place_id": "ChIJj0UkeugKcg0RMA6DDbE6Yyg",
+    "address": "Pl. Pósito, 11, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "958 33 21 11",
+    "website": "https://huetortajar.org/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "2.010"
+  },
+  "paco": {
+    "tier": "DISCARD",
+    "soldelia_fit": "none",
+    "comercializadora_fit": "low",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "No se evalúa para entidades públicas sin actividad económica eléctrica relevante.",
+      "comercializadora": "Podría considerarse un cambio si tienen una tarifa adecuada."
+    },
+    "why": "El lead es un ayuntamiento, lo que implica que no se considera una actividad económica relevante para el PPA colectivo de Soldelia. Además, no se cumplen los requisitos para la comercializadora.",
+    "missing_info": "Datos sobre el consumo anual y la tarifa eléctrica.",
+    "next_action": "No contactar, a menos que se obtenga información adicional sobre el consumo.",
+    "confidence_level": "HIGH"
+  },
+  "tier": "DISCARD",
+  "status": "descartado_por_paco"
+}

@@ -202,6 +202,11 @@ def main() -> int:
     parser.add_argument("--radius", type=int, default=2000, help="Radio en metros")
     parser.add_argument("--max-per-plant", type=int, default=20, help="Máximo de leads por planta")
     parser.add_argument(
+        "--plant-filter",
+        default="",
+        help="Plant ID o lista separada por comas para limitar el scraping",
+    )
+    parser.add_argument(
         "--min-surplus",
         type=float,
         default=0,
@@ -222,8 +227,12 @@ def main() -> int:
         return 1
 
     plants = load_plants(plants_path, args.min_surplus)
+    if args.plant_filter:
+        allowed_plant_ids = {clean_text(item) for item in args.plant_filter.split(",") if clean_text(item)}
+        plants = [plant for plant in plants if clean_text(plant.get("plant_id")) in allowed_plant_ids]
+
     if not plants:
-        print("⚠️ No hay plantas que cumplan el filtro de excedente.")
+        print("⚠️ No hay plantas que cumplan los filtros indicados.")
         return 0
 
     grouped: dict[tuple[float, float], list[dict[str, Any]]] = {}

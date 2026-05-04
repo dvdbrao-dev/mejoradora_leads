@@ -1,0 +1,70 @@
+{
+  "lead_id": "buyallo_taberna._ff5c91ce",
+  "lead_name": "BUYALLO TABERNA.",
+  "started_at": "2026-05-04T18:18:16.100505+00:00",
+  "lead": {
+    "lead_id": "buyallo_taberna._ff5c91ce",
+    "lead_name": "BUYALLO TABERNA.",
+    "sector": "hostelería",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "C. Rosalía de Castro, 1, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "615 07 79 38",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Bar & Grill",
+    "created_at": "2026-05-04T18:16:21.498943+00:00",
+    "updated_at": "2026-05-04T18:16:21.498943+00:00",
+    "place_id": "ChIJI5ellsMKcg0RSrHkOFc5zE4",
+    "address": "C. Rosalía de Castro, 1, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "615 07 79 38",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "2.555"
+  },
+  "paco": {
+    "tier": "B",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "Hay potencial para reducir costos a través de energía solar debido al consumo probable en horario diurno.",
+      "comercializadora": "El cambio de comercializadora podría ofrecer tarifas más competitivas."
+    },
+    "why": "El sector de la hostelería indica actividad diurna, pero se requiere más información sobre el consumo anual para una clasificación más precisa.",
+    "missing_info": "Consumo anual estimado de energía.",
+    "next_action": "Obtener información sobre el consumo anual de electricidad.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "B",
+  "manolo_model": "gpt",
+  "manolo": [
+    {
+      "tipo": "anti_venta",
+      "mensaje": "Hay una planta solar a menos de 3km de tu taberna. Solo quería informarte que puedes acceder a energía solar a 0,09 euros/kWh en horas de sol. Si me mandas la última factura, te digo en 5 minutos cuanto es el ahorro exacto."
+    },
+    {
+      "tipo": "dolor_perdida",
+      "mensaje": "Cada mes que pasa con tu tarifa actual, pagas más de lo que deberías en electricidad para tu cocina y climatización. Con la planta solar a menos de 3km, podrías reducir esos costos. ¿Me envías tu factura eléctrica para hacer un cálculo rápido?"
+    },
+    {
+      "tipo": "autoridad",
+      "mensaje": "Otras tabernas cercanas ya están aprovechando la energía solar y pagando solo 0,09 euros/kWh. No te quedes atrás, con tu factura en la mano puedo ofrecerte un análisis rápido. ¿La envías?"
+    }
+  ],
+  "status": "aprobado",
+  "finished_at": "2026-05-04T18:18:25.158129+00:00"
+}

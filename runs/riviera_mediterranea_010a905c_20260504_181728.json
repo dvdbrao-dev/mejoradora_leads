@@ -1,0 +1,71 @@
+{
+  "lead_id": "riviera_mediterranea_010a905c",
+  "lead_name": "Riviera Mediterranean Restaurante",
+  "started_at": "2026-05-04T18:17:19.390555+00:00",
+  "lead": {
+    "lead_id": "riviera_mediterranea_010a905c",
+    "lead_name": "Riviera Mediterranean Restaurante",
+    "sector": "hostelería",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "P.º la Redonda Sur, 13, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "722 52 25 01",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Restaurant",
+    "created_at": "2026-05-04T18:16:21.497424+00:00",
+    "updated_at": "2026-05-04T18:16:21.497424+00:00",
+    "place_id": "ChIJoX4PH3QLcg0RDodq-g0cdgk",
+    "address": "P.º la Redonda Sur, 13, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "722 52 25 01",
+    "website": "https://rivieramediterranean.es/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "1.850"
+  },
+  "paco": {
+    "tier": "B",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El restaurante podría beneficiarse de un PPA colectivo debido a su posible consumo durante el día.",
+      "comercializadora": "Cambio de comercializadora puede resultar en mejores tarifas eléctricas."
+    },
+    "why": "Es un restaurante, lo que sugiere actividad diurna y un posible consumo significativo, aunque no se cuenta con la factura más reciente para estimar el consumo anual. Se encuentra dentro del radio de la planta solar.",
+    "missing_info": "Consumo anual en kWh o tarifa eléctrica actual.",
+    "next_action": "Contactar al restaurante para obtener más información sobre su consumo eléctrico.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "B",
+  "manolo_model": "gpt",
+  "manolo": [
+    {
+      "tipo": "anti_venta",
+      "mensaje": "Hay una planta solar a menos de 2km de tu restaurante. Solo necesitas enviarme tu factura eléctrica para que te diga cómo beneficiarte de esta opción."
+    },
+    {
+      "tipo": "dolor_perdida",
+      "mensaje": "Cada mes que pasa con tu tarifa actual en el restaurante pagas más de lo necesario. Con una planta a menos de 2km, podrías obtener energía a 0,09 euros/kWh."
+    },
+    {
+      "tipo": "autoridad",
+      "mensaje": "Hay restaurantes en Huétor Tájar que ya están pagando 0,09 euros/kWh gracias a la energía solar. Si me mandas tu última factura, te cuento cómo tú también puedes hacerlo."
+    }
+  ],
+  "status": "aprobado",
+  "finished_at": "2026-05-04T18:17:28.748318+00:00"
+}

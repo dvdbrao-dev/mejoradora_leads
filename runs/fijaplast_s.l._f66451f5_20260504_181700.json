@@ -1,0 +1,55 @@
+{
+  "lead_id": "fijaplast_s.l._f66451f5",
+  "lead_name": "Fijaplast S.L.",
+  "started_at": "2026-05-04T18:16:57.814219+00:00",
+  "lead": {
+    "lead_id": "fijaplast_s.l._f66451f5",
+    "lead_name": "Fijaplast S.L.",
+    "sector": "otro",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "Av. España, 1, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "628 13 11 31",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Manufacturer",
+    "created_at": "2026-05-04T18:16:21.496599+00:00",
+    "updated_at": "2026-05-04T18:16:21.496599+00:00",
+    "place_id": "ChIJRdwsw1AKcg0RKNNITkr1fKk",
+    "address": "Av. España, 1, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "628 13 11 31",
+    "website": "https://www.fijaplast.com/",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "0.233"
+  },
+  "paco": {
+    "tier": "DISCARD",
+    "soldelia_fit": "none",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "No encaja con los requisitos para Soldelia.",
+      "comercializadora": "Potencial para cambio de comercializadora, pero se necesita más información sobre consumo."
+    },
+    "why": "No se especifica tarifa eléctrica y no se proporciona consumo anual. El sector y la actividad son desconocidos.",
+    "missing_info": "Tarifa eléctrica y consumo anual.",
+    "next_action": "Solicitar información adicional acerca de la tarifa eléctrica y consumo.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "DISCARD",
+  "status": "descartado_por_paco"
+}

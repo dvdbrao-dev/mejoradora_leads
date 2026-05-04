@@ -1,0 +1,54 @@
+{
+  "lead_id": "café-bar_las_tres_ca_334d0478",
+  "lead_name": "Café-Bar Las Tres Calles",
+  "started_at": "2026-05-04T18:17:50.519490+00:00",
+  "lead": {
+    "lead_id": "café-bar_las_tres_ca_334d0478",
+    "lead_name": "Café-Bar Las Tres Calles",
+    "sector": "hostelería",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "C. Constitución, s/n, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "958 33 20 79",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": true,
+    "energy_signal": "alto consumo probable",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Bar",
+    "created_at": "2026-05-04T18:16:21.498185+00:00",
+    "updated_at": "2026-05-04T18:16:21.498185+00:00",
+    "place_id": "ChIJwUqEH8MKcg0Ram213Cy3ntI",
+    "address": "C. Constitución, s/n, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "958 33 20 79",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "2.455"
+  },
+  "paco": {
+    "tier": "C",
+    "soldelia_fit": "medium",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "El café-bar puede beneficiarse de ahorro energético mediante la comunidad solar de Soldelia.",
+      "comercializadora": "El cambio de comercializadora eléctrica podría optimizar los costos energéticos del negocio."
+    },
+    "why": "El café-bar probablemente no superará los 30.000 kWh/año y es un pequeño comercio. Está dentro del radio de 5 km de la planta solar.",
+    "missing_info": "Consumo anual en kWh.",
+    "next_action": "Contactar para obtener información sobre el consumo eléctrico anual.",
+    "confidence_level": "MEDIUM"
+  },
+  "tier": "C",
+  "status": "tier_c_en_espera"
+}

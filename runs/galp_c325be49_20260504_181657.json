@@ -1,0 +1,55 @@
+{
+  "lead_id": "galp_c325be49",
+  "lead_name": "Galp",
+  "started_at": "2026-05-04T18:16:54.780177+00:00",
+  "lead": {
+    "lead_id": "galp_c325be49",
+    "lead_name": "Galp",
+    "sector": "otro",
+    "location": {
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "address": "A-92, Pk 200,000 Md, 18360 Huétor Tájar, Granada, Spain"
+    },
+    "contact": {
+      "phone": "697 32 33 59",
+      "email": "",
+      "name": "",
+      "role": ""
+    },
+    "source": "google_maps_solar",
+    "roof_possible": false,
+    "energy_signal": "desconocido",
+    "last_invoice_available": false,
+    "contact_status": "sin contactar",
+    "notes": "Gas Station",
+    "created_at": "2026-05-04T18:16:21.496232+00:00",
+    "updated_at": "2026-05-04T18:16:21.496232+00:00",
+    "place_id": "ChIJk_VaACYLcg0Rk0QhlfSFBD4",
+    "address": "A-92, Pk 200,000 Md, 18360 Huétor Tájar, Granada, Spain",
+    "municipality": "Huétor Tájar",
+    "province": "Granada",
+    "phone": "697 32 33 59",
+    "website": "https://galp.com/es/mapa/E3028",
+    "plant_id": "cs_huetor_tajar_i",
+    "plant_name": "CS Huétor Tájar I",
+    "plant_surplus_pct": "1.00",
+    "distance_km": "3.586"
+  },
+  "paco": {
+    "tier": "DISCARD",
+    "soldelia_fit": "none",
+    "comercializadora_fit": "medium",
+    "estimated_kwh_annual": null,
+    "opportunity": {
+      "ppa": "No es un cliente potencial para Soldelia.",
+      "comercializadora": "Podrían beneficiarse de un cambio de comercializadora eléctrica."
+    },
+    "why": "El lead es una gasolinera, que no encaja en los tipos de actividad para PPA colectivo Soldelia. Además, falta información sobre el consumo eléctrico anual.",
+    "missing_info": "Consumo anual de electricidad",
+    "next_action": "Obtener información sobre el consumo eléctrico anual.",
+    "confidence_level": "HIGH"
+  },
+  "tier": "DISCARD",
+  "status": "descartado_por_paco"
+}
