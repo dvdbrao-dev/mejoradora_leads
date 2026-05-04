@@ -1,37 +1,37 @@
 # STATE — Mejoradora Leads
 
-> AUTO-GENERADO por bin/brief el 2026-04-28 15:06 UTC
+> AUTO-GENERADO por bin/brief el 2026-05-04 18:19 UTC
 > NO editar a mano. Ejecutar `./bin/brief` para regenerar.
 
 ## Repo
 
 - Branch: master
-- Status: master...origin/master
+- Status: master...origin/master [ahead 2]
 - Cambios sin commitear: 0 archivos
 
 ### Últimos 8 commits
 
 ```
+adff8aa feat: scraping + pipeline Huétor Tájar (Granada)
+0995027 feat: añadir planta CS Huétor Tájar I (Granada)
+87551e7 state: regenerar tras limpieza completa
 12be702 state: regenerar tras limpieza completa
 ba8d374 docs: simplificar README y alinear Makefile operativo
 65e0267 ops: pausar cron semanal y Hermes Agent
 92ab748 feat: CSV de revisión manual de leads Tier A+B
 f410500 fix: ampliar SECTOR_MAP y usar notes/types para clasificar sector
-91139d9 fix: SMS engine usa copy de Manolo en vez de template hardcodeado
-14238ed chore: mover BIBLE, phase_2.json y CLEANUP_PLAN a legacy/
-89bf9a5 chore: eliminar scrapers duplicados y backups
 ```
 
 ## Volumen de código
 
-- Líneas Python totales: 4551
+- Líneas Python totales: 4560
 - Scripts en scripts/: 21
 - Tests: 1
 
 ## Datos operativos
 
-- Leads en runs/: 410
-- Plantas Soldelia activas: 33
+- Leads en runs/: 430
+- Plantas Soldelia activas: 34
 - SMS enviados (log local): 8
 
 ## Crons activos
