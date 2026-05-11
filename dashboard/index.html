@@ -9,370 +9,565 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
+      --brand-teal: #007887;
+      --brand-gold: #E1B45A;
       --bg: #07111b;
       --panel: #0f1c2a;
       --panel-2: #132438;
       --line: #23374f;
       --muted: #8da2ba;
       --text: #e7eff9;
-      --green: #14b86f;
+      --green: #22c55e;
+      --yellow: #E1B45A;
       --orange: #f97316;
-      --red: #dc2626;
-      --yellow: #ca8a04;
-      --slate: #64748b;
+      --slate: #94a3b8;
     }
 
     body {
-      background:
-        radial-gradient(circle at top left, rgba(20, 184, 111, 0.12), transparent 24%),
-        radial-gradient(circle at top right, rgba(249, 115, 22, 0.12), transparent 20%),
-        linear-gradient(180deg, #07111b 0%, #0b1622 100%);
+      background: #07111b;
       color: var(--text);
     }
 
     .panel {
-      background: linear-gradient(180deg, rgba(15, 28, 42, 0.96), rgba(12, 24, 36, 0.96));
+      background: rgba(15, 28, 42, 0.96);
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 8px;
       box-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
     }
 
     .metric {
-      background: linear-gradient(180deg, rgba(19, 36, 56, 0.85), rgba(13, 27, 41, 0.85));
+      background: rgba(19, 36, 56, 0.9);
       border: 1px solid rgba(85, 111, 138, 0.25);
-      border-radius: 14px;
+      border-radius: 8px;
     }
 
-    .pipeline-track {
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 999px;
-      overflow: hidden;
-      height: 16px;
+    .btn {
+      border-radius: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 0.4rem 0.55rem;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+      white-space: nowrap;
     }
 
-    .pipeline-fill {
-      background: linear-gradient(90deg, #14b86f, #f59e0b);
-      height: 100%;
-      border-radius: 999px;
+    .btn-teal {
+      background: rgba(0, 120, 135, 0.25);
+      border-color: rgba(45, 212, 191, 0.28);
+      color: #99f6e4;
     }
 
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      display: inline-block;
+    .btn-gold {
+      background: rgba(225, 180, 90, 0.18);
+      border-color: rgba(225, 180, 90, 0.4);
+      color: #fde68a;
     }
 
-    .status-up { background: var(--green); }
-    .status-down { background: var(--red); }
-    .status-unknown { background: #f59e0b; }
+    .btn-dark {
+      background: rgba(15, 23, 42, 0.7);
+      color: #cbd5e1;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .plant-item {
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.58);
+    }
+
+    .plant-item.active {
+      border-color: rgba(225, 180, 90, 0.9);
+      background: rgba(225, 180, 90, 0.11);
+    }
 
     .lead-row:hover {
       background: rgba(255, 255, 255, 0.04);
       cursor: pointer;
     }
 
+    .map-wrap {
+      min-height: 420px;
+      height: calc(100vh - 26rem);
+      max-height: 620px;
+    }
+
     #map {
-      height: 500px;
-      border-radius: 14px;
+      height: 100%;
+      min-height: 420px;
+      border-radius: 8px;
       overflow: hidden;
+    }
+
+    .sidebar {
+      width: 22rem;
+    }
+
+    @media (max-width: 1023px) {
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 50;
+        width: min(22rem, calc(100vw - 2rem));
+        transform: translateX(-105%);
+        transition: transform 0.18s ease;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-backdrop.open {
+        display: block;
+      }
     }
   </style>
 </head>
 <body class="min-h-screen font-sans">
-  <header class="border-b border-slate-800/80 px-6 py-5">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
-      <div>
-        <p class="text-xs uppercase tracking-[0.35em] text-emerald-300">Dashboard Operativo</p>
-        <h1 class="mt-1 text-3xl font-semibold">Mejoradora Leads</h1>
-        <p id="last-update" class="mt-1 text-sm text-slate-400">Cargando...</p>
-      </div>
-      <button id="refresh-btn" class="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/25">
-        Refrescar
-      </button>
-    </div>
-  </header>
+  <div id="sidebar-backdrop" class="sidebar-backdrop fixed inset-0 z-40 hidden bg-black/60 lg:hidden"></div>
 
-  <main class="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-6">
-    <section id="overview" class="grid grid-cols-2 gap-4 xl:grid-cols-6"></section>
-
-    <section class="panel p-6">
-      <div class="mb-4 flex items-center justify-between gap-4">
+  <div class="flex min-h-screen">
+    <aside id="sidebar" class="sidebar border-r border-slate-800 bg-[#091522] p-4 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0">
+      <div class="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 class="text-lg font-semibold">Pipeline Comercial</h2>
-          <p class="text-sm text-slate-400">Fotografía rápida del embudo actual.</p>
+          <p class="text-xs uppercase tracking-[0.22em] text-[#E1B45A]">Cubiertas</p>
+          <h2 class="mt-1 text-xl font-semibold">Búsqueda dirigida</h2>
+          <p id="plants-summary" class="mt-1 text-sm text-slate-400">Cargando plantas...</p>
         </div>
+        <button id="close-sidebar" class="btn btn-dark lg:hidden" aria-label="Cerrar panel">Cerrar</button>
       </div>
-      <div id="pipeline" class="space-y-3"></div>
-    </section>
 
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-      <section class="panel p-6">
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-semibold">Leads</h2>
-            <p id="leads-count" class="text-sm text-slate-400"></p>
-          </div>
-          <div class="flex flex-wrap gap-2 text-sm">
-            <select id="filter-tier" class="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-2">
-              <option value="">Todos tiers</option>
-              <option value="A">Tier A</option>
-              <option value="B">Tier B</option>
-              <option value="C">Tier C</option>
-              <option value="DISCARD">Discard</option>
-            </select>
-            <select id="filter-status" class="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-2">
-              <option value="">Todos estados</option>
-              <option value="pending">Pending</option>
-              <option value="sms_sent">SMS enviado</option>
-              <option value="whatsapp_received">Respondió</option>
-              <option value="visit_done">Visita hecha</option>
-              <option value="closed_won">Cerrado</option>
-            </select>
-          </div>
-        </div>
-        <div class="max-h-[30rem] overflow-auto">
-          <table class="w-full text-sm">
-            <thead class="sticky top-0 bg-[#0f1c2a] text-left text-xs uppercase tracking-[0.2em] text-slate-400">
-              <tr>
-                <th class="py-3 pr-3">Tier</th>
-                <th class="py-3 pr-3">Nombre</th>
-                <th class="py-3 pr-3">Municipio</th>
-                <th class="py-3 pr-3">Estado</th>
-              </tr>
-            </thead>
-            <tbody id="leads-tbody"></tbody>
-          </table>
-        </div>
-      </section>
+      <button id="clear-plant" class="btn btn-teal mb-3 w-full">Ver todas las plantas</button>
+      <div id="search-result" class="mb-3 hidden rounded-lg border border-teal-400/30 bg-teal-950/35 p-3 text-sm"></div>
+      <div id="plants-list" class="max-h-[calc(100vh-13rem)] space-y-3 overflow-auto pr-1"></div>
+    </aside>
 
-      <section class="panel p-6">
-        <div class="mb-4 flex items-center justify-between gap-4">
-          <div>
-            <h2 class="text-lg font-semibold">Mapa Geográfico</h2>
-            <p class="text-sm text-slate-400">Plantas activas y leads geocodificados.</p>
+    <div class="min-w-0 flex-1">
+      <header class="border-b border-slate-800/80 px-4 py-4 sm:px-6">
+        <div class="mx-auto flex max-w-[96rem] items-center justify-between gap-4">
+          <div class="min-w-0">
+            <div class="flex items-center gap-3">
+              <button id="open-sidebar" class="btn btn-dark lg:hidden" aria-label="Abrir panel">Cubiertas</button>
+              <div>
+                <p class="text-xs uppercase tracking-[0.24em] text-teal-300">Dashboard operativo</p>
+                <h1 class="mt-1 text-2xl font-semibold sm:text-3xl">Mejoradora Leads</h1>
+              </div>
+            </div>
+            <p id="last-update" class="mt-2 text-sm text-slate-400">Cargando...</p>
           </div>
+          <button id="refresh-btn" class="btn btn-teal px-4 py-2 text-sm font-medium">Refrescar</button>
         </div>
-        <div id="map"></div>
-        <div class="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
-          <span>Plantas: <span id="plants-count">0</span></span>
-          <span>Leads mapeados: <span id="leads-mapped-count">0</span></span>
+      </header>
+
+      <main class="mx-auto flex max-w-[96rem] flex-col gap-5 px-4 py-5 sm:px-6">
+        <section id="overview" class="grid grid-cols-2 gap-3 xl:grid-cols-6"></section>
+
+        <section class="panel p-4">
+          <div class="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <h2 class="text-lg font-semibold">Leads por cubierta</h2>
+              <p id="active-scope" class="mt-1 text-sm text-slate-400">Todas las plantas activas</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <select id="filter-tier" class="rounded-md border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm">
+                <option value="">Todos tiers</option>
+                <option value="A">Tier A</option>
+                <option value="B">Tier B</option>
+                <option value="C">Tier C</option>
+                <option value="DISCARD">Discard</option>
+              </select>
+              <select id="filter-status" class="rounded-md border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm">
+                <option value="">Todos estados</option>
+                <option value="pending">Pending</option>
+                <option value="aprobado">Aprobado</option>
+                <option value="tier_c_en_espera">Tier C espera</option>
+                <option value="descartado_por_paco">Descartado</option>
+              </select>
+              <input id="filter-sector" class="rounded-md border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm" placeholder="Sector">
+              <input id="filter-municipality" class="rounded-md border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm" placeholder="Municipio">
+            </div>
+          </div>
+        </section>
+
+        <div class="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_0.95fr]">
+          <section class="panel p-4">
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-semibold">Tabla</h2>
+                <p id="leads-count" class="text-sm text-slate-400"></p>
+              </div>
+            </div>
+            <div class="max-h-[33rem] overflow-auto">
+              <table class="w-full text-sm">
+                <thead class="sticky top-0 bg-[#0f1c2a] text-left text-xs uppercase tracking-[0.16em] text-slate-400">
+                  <tr>
+                    <th class="py-3 pr-3">Tier</th>
+                    <th class="py-3 pr-3">Nombre</th>
+                    <th class="py-3 pr-3">Municipio</th>
+                    <th class="py-3 pr-3">Planta</th>
+                    <th class="py-3 pr-3">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="leads-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel p-4">
+            <div class="mb-3 flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold">Mapa</h2>
+                <p class="text-sm text-slate-400">Plantas, radios y leads filtrados.</p>
+              </div>
+            </div>
+            <div class="map-wrap">
+              <div id="map"></div>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
+              <span>Plantas: <span id="plants-count">0</span></span>
+              <span>Leads mapeados: <span id="leads-mapped-count">0</span></span>
+              <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-[#22c55e]"></span>A</span>
+              <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-[#E1B45A]"></span>B</span>
+              <span class="inline-flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>C</span>
+            </div>
+          </section>
         </div>
-      </section>
+
+        <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+          <section class="panel p-4">
+            <div class="mb-4">
+              <h2 class="text-lg font-semibold">Timeline</h2>
+              <p class="text-sm text-slate-400">Últimos eventos de los últimos 7 días.</p>
+            </div>
+            <div id="timeline" class="max-h-[24rem] space-y-3 overflow-auto"></div>
+          </section>
+
+          <section class="panel p-4">
+            <div class="mb-4">
+              <h2 class="text-lg font-semibold">Estado técnico</h2>
+              <p class="text-sm text-slate-400">Servicios y crédito operativo.</p>
+            </div>
+            <div id="services" class="space-y-3"></div>
+          </section>
+        </div>
+      </main>
     </div>
-
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
-      <section class="panel p-6">
-        <div class="mb-4">
-          <h2 class="text-lg font-semibold">Timeline</h2>
-          <p class="text-sm text-slate-400">Últimos eventos de los últimos 7 días.</p>
-        </div>
-        <div id="timeline" class="max-h-[28rem] space-y-3 overflow-auto"></div>
-      </section>
-
-      <section class="panel p-6">
-        <div class="mb-4">
-          <h2 class="text-lg font-semibold">Estado Técnico</h2>
-          <p class="text-sm text-slate-400">Servicios y crédito operativo.</p>
-        </div>
-        <div id="services" class="space-y-3"></div>
-      </section>
-    </div>
-  </main>
+  </div>
 
   <script>
-    const API = "/api/dashboard";
+    const DASHBOARD_API = "/api/dashboard";
+    const ROOT_API = "/api";
+
+    let plants = [];
     let allLeads = [];
+    let visibleLeads = [];
+    let selectedPlantId = "";
+    let lastSearch = null;
     let map = null;
+    let mapCenter = { lat: 37.1773, lng: -3.5986 };
     let mapLayers = [];
 
-    async function fetchJSON(path) {
-      const response = await fetch(API + path);
+    async function fetchJSON(path, options = {}) {
+      const response = await fetch(path, {
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        ...options
+      });
       if (!response.ok) {
-        throw new Error(`${response.status} ${response.statusText}`);
+        const text = await response.text();
+        throw new Error(text || `${response.status} ${response.statusText}`);
       }
       return response.json();
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
     }
 
     function formatNumber(value) {
       return new Intl.NumberFormat("es-ES").format(value || 0);
     }
 
-    function formatEuro(value) {
-      return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value || 0);
-    }
-
     function timeAgo(iso) {
-      const seconds = (Date.now() - new Date(iso).getTime()) / 1000;
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return "";
+      const seconds = Math.max(0, (Date.now() - date.getTime()) / 1000);
       if (seconds < 60) return `hace ${Math.round(seconds)}s`;
       if (seconds < 3600) return `hace ${Math.round(seconds / 60)}m`;
       if (seconds < 86400) return `hace ${Math.round(seconds / 3600)}h`;
       return `hace ${Math.round(seconds / 86400)}d`;
     }
 
-    function tierBadge(tier) {
-      const styles = {
-        A: "background:#991b1b;color:#fecaca;",
-        B: "background:#9a3412;color:#fed7aa;",
-        C: "background:#854d0e;color:#fde68a;",
-        DISCARD: "background:#334155;color:#cbd5e1;"
+    function normalizePlant(raw) {
+      return {
+        plant_id: raw.plant_id || raw.id || "",
+        name: raw.name || "Planta sin nombre",
+        municipality: raw.municipality || "",
+        province: raw.province || "",
+        lat: Number(raw.lat ?? raw.latitude),
+        lng: Number(raw.lng ?? raw.longitude),
+        radio_km: Number(raw.radio_km || 5),
+        power_kw: raw.power_kw ?? "",
+        status: raw.status || "active"
       };
-      return `<span class="rounded-full px-2 py-1 text-xs font-semibold" style="${styles[tier] || styles.DISCARD}">${tier || "-"}</span>`;
     }
 
-    async function renderOverview() {
-      const data = await fetchJSON("/overview");
-      const root = document.getElementById("overview");
-      root.innerHTML = `
+    function tierColor(tier) {
+      return { A: "#22c55e", B: "#E1B45A", C: "#94a3b8", DISCARD: "#475569" }[tier] || "#94a3b8";
+    }
+
+    function tierBadge(tier) {
+      const color = tierColor(tier);
+      const text = tier || "-";
+      return `<span class="rounded-full px-2 py-1 text-xs font-semibold" style="background:${color}22;color:${color};border:1px solid ${color}66">${escapeHTML(text)}</span>`;
+    }
+
+    function leadPlantId(lead) {
+      return String(lead.plant_id || "").trim();
+    }
+
+    function selectedPlant() {
+      return plants.find(plant => plant.plant_id === selectedPlantId) || null;
+    }
+
+    function leadsForPlant(plantId, source = allLeads) {
+      return source.filter(lead => leadPlantId(lead) === plantId);
+    }
+
+    function filteredLeads() {
+      const tier = document.getElementById("filter-tier").value;
+      const status = document.getElementById("filter-status").value;
+      const sector = document.getElementById("filter-sector").value.trim().toLowerCase();
+      const municipality = document.getElementById("filter-municipality").value.trim().toLowerCase();
+
+      return allLeads.filter(lead => {
+        if (selectedPlantId && leadPlantId(lead) !== selectedPlantId) return false;
+        if (tier && String(lead.tier || "").toUpperCase() !== tier) return false;
+        if (status && String(lead.contact_status || lead.pipeline_status || "") !== status) return false;
+        if (sector && !String(lead.sector || "").toLowerCase().includes(sector)) return false;
+        if (municipality && !String(lead.municipality || "").toLowerCase().includes(municipality)) return false;
+        return true;
+      });
+    }
+
+    function renderOverview() {
+      const tierCounts = { A: 0, B: 0, C: 0, DISCARD: 0 };
+      for (const lead of visibleLeads) {
+        const tier = String(lead.tier || "C").toUpperCase();
+        tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+      }
+      const plant = selectedPlant();
+      const scopedTotal = plant ? leadsForPlant(plant.plant_id).length : allLeads.length;
+      const mapped = visibleLeads.filter(lead => Number.isFinite(Number(lead.lat)) && Number.isFinite(Number(lead.lng))).length;
+
+      document.getElementById("overview").innerHTML = `
         <article class="metric p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Total Leads</p>
-          <p class="mt-3 text-3xl font-semibold">${formatNumber(data.leads.total)}</p>
-          <p class="mt-2 text-sm text-slate-400">${data.leads.tier_a} A · ${data.leads.tier_b} B</p>
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Total leads</p>
+          <p class="mt-3 text-3xl font-semibold">${formatNumber(visibleLeads.length)}</p>
+          <p class="mt-2 text-sm text-slate-400">${plant ? "Filtrados en cubierta" : "Filtrados"}</p>
         </article>
         <article class="metric p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">SMS Enviados</p>
-          <p class="mt-3 text-3xl font-semibold">${formatNumber(data.pipeline.sms_sent)}</p>
-          <p class="mt-2 text-sm text-rose-300">${data.pipeline.sms_failed} fallos</p>
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Tier A</p>
+          <p class="mt-3 text-3xl font-semibold text-[#22c55e]">${formatNumber(tierCounts.A)}</p>
+          <p class="mt-2 text-sm text-slate-400">Alta prioridad</p>
         </article>
         <article class="metric p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Respondieron</p>
-          <p class="mt-3 text-3xl font-semibold">${formatNumber(data.pipeline.responded)}</p>
-          <p class="mt-2 text-sm text-slate-400">${data.pipeline.visits_done} visitas hechas</p>
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Tier B</p>
+          <p class="mt-3 text-3xl font-semibold text-[#E1B45A]">${formatNumber(tierCounts.B)}</p>
+          <p class="mt-2 text-sm text-slate-400">Revisar</p>
         </article>
         <article class="metric p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Cerrados</p>
-          <p class="mt-3 text-3xl font-semibold text-emerald-400">${formatNumber(data.pipeline.closed_won)}</p>
-          <p class="mt-2 text-sm text-slate-400">${data.pipeline.closed_lost} perdidos</p>
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Tier C</p>
+          <p class="mt-3 text-3xl font-semibold text-slate-300">${formatNumber(tierCounts.C)}</p>
+          <p class="mt-2 text-sm text-slate-400">En espera</p>
         </article>
         <article class="metric p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Comisión Proyectada</p>
-          <p class="mt-3 text-3xl font-semibold">${formatEuro(data.financiero.comision_proyectada_year1_eur)}</p>
-          <p class="mt-2 text-sm text-slate-400">${formatEuro(data.financiero.comision_cerrada_eur)} cerrada</p>
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Cubierta</p>
+          <p class="mt-3 truncate text-2xl font-semibold">${escapeHTML(plant ? plant.name : "Todas")}</p>
+          <p class="mt-2 text-sm text-slate-400">${formatNumber(scopedTotal)} lead(s) base</p>
         </article>
         <article class="metric p-4">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Geocodificados</p>
-          <p class="mt-3 text-3xl font-semibold">${formatNumber(data.leads.con_coordenadas)}</p>
-          <p class="mt-2 text-sm text-slate-400">de ${formatNumber(data.leads.total)}</p>
+          <p class="text-xs uppercase tracking-[0.16em] text-slate-400">Mapa</p>
+          <p class="mt-3 text-3xl font-semibold">${formatNumber(mapped)}</p>
+          <p class="mt-2 text-sm text-slate-400">con coordenadas</p>
         </article>
       `;
     }
 
-    async function renderPipeline() {
-      const data = await fetchJSON("/pipeline");
-      const root = document.getElementById("pipeline");
-      const items = data.funnel.filter(item =>
-        ["pending", "sms_sent", "whatsapp_received", "call_done", "visit_done", "study_sent", "proposal_sent", "closed_won"].includes(item.stage)
-      );
-      const max = Math.max(...items.map(item => item.count), 1);
-      root.innerHTML = items.map(item => `
-        <div class="grid grid-cols-[9rem_1fr_4rem] items-center gap-3 text-sm">
-          <span class="text-slate-300">${item.stage}</span>
-          <div class="pipeline-track">
-            <div class="pipeline-fill" style="width:${(item.count / max) * 100}%"></div>
-          </div>
-          <span class="text-right font-mono text-slate-300">${item.count}</span>
-        </div>
-      `).join("");
-    }
-
-    async function renderLeads() {
-      const tier = document.getElementById("filter-tier").value;
-      const status = document.getElementById("filter-status").value;
-      let path = "/leads?limit=200";
-      if (tier) path += `&tier=${encodeURIComponent(tier)}`;
-      if (status) path += `&status=${encodeURIComponent(status)}`;
-      const data = await fetchJSON(path);
-      allLeads = data.leads;
-      document.getElementById("leads-count").textContent = `Mostrando ${data.leads.length} de ${data.total}`;
-      document.getElementById("leads-tbody").innerHTML = data.leads.map(lead => `
-        <tr class="lead-row border-b border-slate-800/80" onclick="showLead('${lead.lead_id}')">
-          <td class="py-3 pr-3">${tierBadge(lead.tier)}</td>
-          <td class="py-3 pr-3">${lead.lead_name || "-"}</td>
-          <td class="py-3 pr-3 text-slate-400">${lead.municipality || "-"}</td>
-          <td class="py-3 pr-3 text-xs text-slate-300">${lead.contact_status || "pending"}</td>
-        </tr>
-      `).join("");
-    }
-
-    async function renderMap() {
-      const data = await fetchJSON("/map");
-      if (!map) {
-        map = L.map("map").setView([data.center.lat, data.center.lng], 7);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: "© OpenStreetMap"
-        }).addTo(map);
+    function renderPlantSidebar() {
+      const leadCounts = new Map();
+      for (const lead of allLeads) {
+        const id = leadPlantId(lead);
+        if (id) leadCounts.set(id, (leadCounts.get(id) || 0) + 1);
       }
 
-      mapLayers.forEach(layer => map.removeLayer(layer));
+      document.getElementById("plants-summary").textContent = `${plants.length} planta(s) activa(s)`;
+      document.getElementById("plants-list").innerHTML = plants.map(plant => {
+        const count = leadCounts.get(plant.plant_id) || 0;
+        const active = plant.plant_id === selectedPlantId ? "active" : "";
+        return `
+          <article class="plant-item ${active} p-3" data-plant-id="${escapeHTML(plant.plant_id)}">
+            <button class="w-full text-left" onclick="selectPlant('${escapeHTML(plant.plant_id)}')">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <h3 class="truncate text-sm font-semibold">${escapeHTML(plant.name)}</h3>
+                  <p class="mt-1 text-xs text-slate-400">${escapeHTML([plant.municipality, plant.province].filter(Boolean).join(", ") || "-")}</p>
+                </div>
+                <span class="rounded-full bg-slate-900 px-2 py-1 text-xs text-slate-300">${count}</span>
+              </div>
+            </button>
+            <div class="mt-3 grid grid-cols-3 gap-2">
+              <button class="btn btn-teal" onclick="searchPlant('${escapeHTML(plant.plant_id)}')">Buscar</button>
+              <button class="btn btn-gold" onclick="viewPlantLeads('${escapeHTML(plant.plant_id)}')">Ver leads</button>
+              <button class="btn btn-dark" disabled title="Próximamente">Export teleop</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderLeadTable() {
+      document.getElementById("leads-count").textContent = `Mostrando ${visibleLeads.length} de ${allLeads.length}`;
+      document.getElementById("leads-tbody").innerHTML = visibleLeads.map(lead => `
+        <tr class="lead-row border-b border-slate-800/80" onclick="showLead('${escapeHTML(lead.lead_id)}')">
+          <td class="py-3 pr-3">${tierBadge(lead.tier)}</td>
+          <td class="py-3 pr-3">${escapeHTML(lead.lead_name || "-")}</td>
+          <td class="py-3 pr-3 text-slate-400">${escapeHTML(lead.municipality || "-")}</td>
+          <td class="py-3 pr-3 text-slate-400">${escapeHTML(lead.plant_name || lead.plant_id || "-")}</td>
+          <td class="py-3 pr-3 text-xs text-slate-300">${escapeHTML(lead.contact_status || lead.pipeline_status || "pending")}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="5" class="py-8 text-center text-sm text-slate-400">Sin leads para los filtros actuales.</td></tr>`;
+    }
+
+    function clearMap() {
+      for (const layer of mapLayers) {
+        map.removeLayer(layer);
+      }
       mapLayers = [];
+    }
 
-      data.plants.forEach(plant => {
-        const layer = L.circleMarker([plant.lat, plant.lng], {
+    function ensureMap() {
+      if (map) return;
+      map = L.map("map").setView([mapCenter.lat, mapCenter.lng], 7);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap"
+      }).addTo(map);
+    }
+
+    function renderMap() {
+      ensureMap();
+      clearMap();
+
+      const plantSet = selectedPlantId ? plants.filter(plant => plant.plant_id === selectedPlantId) : plants;
+      for (const plant of plantSet) {
+        if (!Number.isFinite(plant.lat) || !Number.isFinite(plant.lng)) continue;
+        const marker = L.circleMarker([plant.lat, plant.lng], {
           radius: 8,
-          fillColor: "#14b86f",
-          color: "#a7f3d0",
+          fillColor: "#f97316",
+          color: "#E1B45A",
+          weight: 2,
+          fillOpacity: 0.95
+        }).bindPopup(`<strong>${escapeHTML(plant.name)}</strong><br>${escapeHTML(plant.municipality || "")}`);
+        const radius = L.circle([plant.lat, plant.lng], {
+          radius: Math.max(plant.radio_km || 0, 0.1) * 1000,
+          color: "#f97316",
           weight: 1,
-          fillOpacity: 0.9
-        }).bindPopup(`<strong>${plant.name}</strong><br>${plant.municipality || ""}`);
-        layer.addTo(map);
-        mapLayers.push(layer);
-      });
+          fillColor: "#f97316",
+          fillOpacity: 0.08
+        });
+        marker.addTo(map);
+        radius.addTo(map);
+        mapLayers.push(marker, radius);
+      }
 
-      data.leads.forEach(lead => {
-        const colors = { A: "#dc2626", B: "#f97316", C: "#ca8a04", DISCARD: "#64748b" };
-        const layer = L.circleMarker([lead.lat, lead.lng], {
+      for (const lead of visibleLeads) {
+        const lat = Number(lead.lat);
+        const lng = Number(lead.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+        const color = tierColor(String(lead.tier || "C").toUpperCase());
+        const layer = L.circleMarker([lat, lng], {
           radius: 5,
-          fillColor: colors[lead.tier] || "#64748b",
+          fillColor: color,
           color: "#e2e8f0",
           weight: 1,
-          fillOpacity: 0.95
-        }).bindPopup(`<strong>${lead.name}</strong><br>Tier ${lead.tier || "-"}<br>${lead.contact_status || "pending"}`);
+          fillOpacity: 0.92
+        }).bindPopup(`<strong>${escapeHTML(lead.lead_name || lead.name || "")}</strong><br>Tier ${escapeHTML(lead.tier || "-")}<br>${escapeHTML(lead.municipality || "")}`);
         layer.addTo(map);
         mapLayers.push(layer);
-      });
+      }
 
-      document.getElementById("plants-count").textContent = data.plants.length;
-      document.getElementById("leads-mapped-count").textContent = data.leads.length;
+      document.getElementById("plants-count").textContent = plantSet.length;
+      document.getElementById("leads-mapped-count").textContent = visibleLeads.filter(lead => Number.isFinite(Number(lead.lat)) && Number.isFinite(Number(lead.lng))).length;
+    }
+
+    function focusSelectedPlant() {
+      const plant = selectedPlant();
+      if (!plant || !map || !Number.isFinite(plant.lat) || !Number.isFinite(plant.lng)) return;
+      const radiusM = Math.max(plant.radio_km || 5, 0.5) * 1000;
+      const bounds = L.circle([plant.lat, plant.lng], { radius: radiusM }).getBounds();
+      map.fitBounds(bounds, { padding: [28, 28], maxZoom: 15 });
+    }
+
+    function applyFilters() {
+      visibleLeads = filteredLeads();
+      const plant = selectedPlant();
+      document.getElementById("active-scope").textContent = plant
+        ? `${plant.name} · ${[plant.municipality, plant.province].filter(Boolean).join(", ")}`
+        : "Todas las plantas activas";
+      renderOverview();
+      renderPlantSidebar();
+      renderLeadTable();
+      renderMap();
+      focusSelectedPlant();
+    }
+
+    async function loadPlantsAndLeads() {
+      const [plantsData, leadsData, mapData] = await Promise.all([
+        fetchJSON(`${ROOT_API}/plants?status=active`),
+        fetchJSON(`${DASHBOARD_API}/leads?limit=5000`),
+        fetchJSON(`${DASHBOARD_API}/map`).catch(() => null)
+      ]);
+      plants = (Array.isArray(plantsData) ? plantsData : []).map(normalizePlant);
+      allLeads = Array.isArray(leadsData.leads) ? leadsData.leads : [];
+      if (mapData && mapData.center) {
+        mapCenter = {
+          lat: Number(mapData.center.lat) || mapCenter.lat,
+          lng: Number(mapData.center.lng) || mapCenter.lng
+        };
+      }
+      visibleLeads = filteredLeads();
     }
 
     async function renderTimeline() {
-      const data = await fetchJSON("/timeline?days=7&limit=30");
+      const data = await fetchJSON(`${DASHBOARD_API}/timeline?days=7&limit=30`);
       const root = document.getElementById("timeline");
-      if (!data.events.length) {
+      if (!data.events || !data.events.length) {
         root.innerHTML = `<p class="text-sm text-slate-400">No hay eventos recientes.</p>`;
         return;
       }
-
-      const icon = {
-        sms_sent: "SMS",
-        sms_failed: "FAIL",
-        whatsapp_received: "WA",
-        call_scheduled: "CALL",
-        call_done: "DONE",
-        visit_scheduled: "VISIT",
-        visit_done: "OK",
-        study_sent: "STUDY",
-        proposal_sent: "PROP",
-        closed_won: "WON",
-        closed_lost: "LOST",
-        note: "NOTE"
-      };
-
       root.innerHTML = data.events.map(event => `
-        <article class="rounded-2xl border border-slate-800 bg-slate-950/35 px-4 py-3">
+        <article class="rounded-lg border border-slate-800 bg-slate-950/35 px-4 py-3">
           <div class="flex items-start justify-between gap-4">
             <div>
-              <p class="text-sm font-medium">${icon[event.event_type] || "EVT"} · ${(event.data && event.data.lead_name) || event.lead_id}</p>
-              <p class="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">${event.event_type}</p>
+              <p class="text-sm font-medium">${escapeHTML((event.data && event.data.lead_name) || event.lead_id || "-")}</p>
+              <p class="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">${escapeHTML(event.event_type || "")}</p>
             </div>
-            <span class="text-xs text-slate-400">${timeAgo(event.timestamp)}</span>
+            <span class="text-xs text-slate-400">${escapeHTML(timeAgo(event.timestamp))}</span>
           </div>
         </article>
       `).join("");
     }
 
     async function renderServices() {
-      const data = await fetchJSON("/services");
+      const data = await fetchJSON(`${DASHBOARD_API}/services`);
       const items = [
         { name: "Dashboard :8001", status: data.dashboard.status, detail: "API principal" },
         { name: "Hermes WhatsApp :3000", status: data.hermes.status, detail: data.hermes.port ? `puerto ${data.hermes.port}` : "sin dato" },
@@ -381,45 +576,119 @@
       ];
 
       document.getElementById("services").innerHTML = items.map(item => {
-        const cls = item.status === "up" || item.status === "active" ? "status-up" : item.status === "down" || item.status === "empty" ? "status-down" : "status-unknown";
+        const color = item.status === "up" || item.status === "active" ? "#22c55e" : item.status === "down" || item.status === "empty" ? "#ef4444" : "#E1B45A";
         return `
-          <div class="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-950/35 px-4 py-3 text-sm">
+          <div class="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/35 px-4 py-3 text-sm">
             <div class="flex items-center gap-3">
-              <span class="status-dot ${cls}"></span>
-              <span>${item.name}</span>
+              <span class="h-2.5 w-2.5 rounded-full" style="background:${color}"></span>
+              <span>${escapeHTML(item.name)}</span>
             </div>
-            <span class="text-slate-400">${item.detail}</span>
+            <span class="text-slate-400">${escapeHTML(item.detail)}</span>
           </div>
         `;
       }).join("");
     }
 
     function showLead(leadId) {
-      const lead = allLeads.find(item => item.lead_id === leadId);
+      const lead = allLeads.find(item => String(item.lead_id) === String(leadId));
       if (!lead) return;
       alert(
         `${lead.lead_name}\n\n` +
-        `Tier: ${lead.tier}\n` +
-        `Estado: ${lead.contact_status}\n` +
+        `Tier: ${lead.tier || "-"}\n` +
+        `Estado: ${lead.contact_status || lead.pipeline_status || "-"}\n` +
         `Municipio: ${lead.municipality || "-"}\n` +
         `Sector: ${lead.sector || "-"}\n` +
-        `Planta: ${lead.plant_name || "-"}\n` +
+        `Planta: ${lead.plant_name || lead.plant_id || "-"}\n` +
         `Distancia: ${lead.distance_km || "-"} km\n` +
         `Teléfono: ${lead.phone || "-"}`
       );
     }
 
+    function selectPlant(plantId) {
+      selectedPlantId = selectedPlantId === plantId ? "" : plantId;
+      applyFilters();
+      closeSidebarMobile();
+    }
+
+    function viewPlantLeads(plantId) {
+      selectedPlantId = plantId;
+      applyFilters();
+      closeSidebarMobile();
+    }
+
+    async function searchPlant(plantId) {
+      const plant = plants.find(item => item.plant_id === plantId);
+      if (!plant) return;
+
+      selectedPlantId = plantId;
+      applyFilters();
+
+      const box = document.getElementById("search-result");
+      box.classList.remove("hidden");
+      box.innerHTML = `<p class="text-slate-200">Buscando en ${escapeHTML(plant.name)}...</p>`;
+
+      try {
+        const payload = {
+          lat: plant.lat,
+          lng: plant.lng,
+          radius_km: plant.radio_km || 5,
+          plant_id: plant.plant_id
+        };
+        const result = await fetchJSON(`${ROOT_API}/search_custom_zone`, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        lastSearch = result;
+        box.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="font-medium text-teal-100">${formatNumber(result.lead_count)} lead(s) encontrados</p>
+              <p class="mt-1 break-all text-xs text-slate-400">${escapeHTML(result.csv_path || "")}</p>
+            </div>
+            <button class="btn btn-gold" onclick="ingestLastSearch()">Ingestar</button>
+          </div>
+        `;
+      } catch (error) {
+        box.innerHTML = `<p class="text-rose-200">${escapeHTML(error.message)}</p>`;
+      }
+    }
+
+    async function ingestLastSearch() {
+      if (!lastSearch || !lastSearch.csv_path) return;
+      const box = document.getElementById("search-result");
+      box.innerHTML = `<p class="text-slate-200">Ingestando CSV...</p>`;
+      try {
+        const result = await fetchJSON(`${ROOT_API}/ingest_custom`, {
+          method: "POST",
+          body: JSON.stringify({ csv_path: lastSearch.csv_path })
+        });
+        box.innerHTML = `
+          <p class="font-medium text-teal-100">${formatNumber(result.lead_count)} lead(s) ingestados</p>
+          <p class="mt-1 break-all text-xs text-slate-400">${escapeHTML(result.json_path || "")}</p>
+        `;
+        await loadPlantsAndLeads();
+        applyFilters();
+      } catch (error) {
+        box.innerHTML = `<p class="text-rose-200">${escapeHTML(error.message)}</p>`;
+      }
+    }
+
+    function openSidebarMobile() {
+      document.getElementById("sidebar").classList.add("open");
+      document.getElementById("sidebar-backdrop").classList.add("open");
+    }
+
+    function closeSidebarMobile() {
+      document.getElementById("sidebar").classList.remove("open");
+      document.getElementById("sidebar-backdrop").classList.remove("open");
+    }
+
     async function refreshAll() {
       document.getElementById("last-update").textContent = "Actualizando...";
       try {
-        await Promise.all([
-          renderOverview(),
-          renderPipeline(),
-          renderLeads(),
-          renderMap(),
-          renderTimeline(),
-          renderServices()
-        ]);
+        await loadPlantsAndLeads();
+        applyFilters();
+        await Promise.all([renderTimeline(), renderServices()]);
         document.getElementById("last-update").textContent = `Actualizado ${new Date().toLocaleTimeString("es-ES")}`;
       } catch (error) {
         document.getElementById("last-update").textContent = `Error: ${error.message}`;
@@ -427,8 +696,17 @@
     }
 
     document.getElementById("refresh-btn").addEventListener("click", refreshAll);
-    document.getElementById("filter-tier").addEventListener("change", renderLeads);
-    document.getElementById("filter-status").addEventListener("change", renderLeads);
+    document.getElementById("open-sidebar").addEventListener("click", openSidebarMobile);
+    document.getElementById("close-sidebar").addEventListener("click", closeSidebarMobile);
+    document.getElementById("sidebar-backdrop").addEventListener("click", closeSidebarMobile);
+    document.getElementById("clear-plant").addEventListener("click", () => {
+      selectedPlantId = "";
+      applyFilters();
+    });
+    for (const id of ["filter-tier", "filter-status", "filter-sector", "filter-municipality"]) {
+      document.getElementById(id).addEventListener("input", applyFilters);
+      document.getElementById(id).addEventListener("change", applyFilters);
+    }
 
     refreshAll();
     setInterval(refreshAll, 30000);
