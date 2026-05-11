@@ -11,7 +11,7 @@ DATA := $(ROOT)/data
 RUNS := $(ROOT)/runs
 INPUTS := $(ROOT)/inputs
 
-.PHONY: help install dashboard scrape pipeline enrich export review-csv status plants add-plant clean-logs backup test brief context decision
+.PHONY: help install dashboard scrape pipeline enrich export review-csv status plants add-plant search-zone clean-logs backup test brief context decision
 
 help: ## Muestra este menu
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -71,6 +71,11 @@ plants: ## Lista plantas Soldelia configuradas
 
 add-plant: ## Añade una cubierta nueva (usar con ARGS="--name X --lat Y --lon Z")
 	source $(VENV) && python3 scripts/manage_plants.py add $(ARGS)
+
+search-zone: ## Busca leads en zona custom (usar con LAT=x LNG=y RADIUS=z [PLANT=id])
+	source $(VENV) && python3 scripts/scraper_custom_zone.py \
+		--lat $(LAT) --lng $(LNG) --radius-km $(RADIUS) \
+		$(if $(PLANT),--plant-id $(PLANT),)
 
 clean-logs: ## Borra logs de mas de 30 dias
 	find $(DATA)/logs -name "*.log" -mtime +30 -delete 2>/dev/null || true
