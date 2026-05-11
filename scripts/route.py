@@ -26,7 +26,7 @@ OUTPUTS_DIR = BASE_DIR / "outputs"
 RUNS_DIR = BASE_DIR / "runs"
 
 OPENAI_MODEL = "gpt-4o-mini"
-CLAUDE_MODEL = "claude-sonnet-4-20250514"
+CLAUDE_MODEL = "claude-sonnet-4-6"
 
 
 def parse_json_response(raw: str) -> dict:
@@ -118,10 +118,27 @@ def run_pipeline(lead: dict, save: bool = True) -> dict:
     }
 
     # Paso 1: Paco califica el lead
-    paco_result = call_openai_agent(
-        "paco",
-        f"Califica este lead:\n{json.dumps(lead, ensure_ascii=False, indent=2)}"
-    )
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if anthropic_key:
+        paco_result = call_claude_agent(
+            "paco",
+            f"Califica este lead:\n{json.dumps(lead, ensure_ascii=False, indent=2)}"
+        )
+        run["paco_model"] = "claude-sonnet-4-6"
+    else:
+        paco_result = call_openai_agent(
+            "paco",
+            f"Califica este lead:\n{json.dumps(lead, ensure_ascii=False, indent=2)}"
+        )
+        run["paco_model"] = "gpt-4o-mini"
+
+    # Coste estimado Sonnet 4.6: $3/MTok in, $15/MTok out
+    if run.get("paco_model") == "claude-sonnet-4-6":
+        est_input_tokens = len(json.dumps(lead)) // 4 + 600  # ~prompt sistema
+        est_output_tokens = 250  # JSON de Paco
+        run["cost_estimate_eur"] = round(
+            (est_input_tokens * 3 + est_output_tokens * 15) / 1_000_000 * 0.92, 6
+        )
     run["paco"] = paco_result
 
     tier = paco_result.get("tier", "C")

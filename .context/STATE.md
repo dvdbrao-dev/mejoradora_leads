@@ -1,36 +1,36 @@
 # STATE — Mejoradora Leads
 
-> AUTO-GENERADO por bin/brief el 2026-05-04 18:19 UTC
+> AUTO-GENERADO por bin/brief el 2026-05-11 17:10 UTC
 > NO editar a mano. Ejecutar `./bin/brief` para regenerar.
 
 ## Repo
 
 - Branch: master
-- Status: master...origin/master [ahead 2]
-- Cambios sin commitear: 0 archivos
+- Status: master...origin/master [ahead 10]
+- Cambios sin commitear: 3 archivos
 
 ### Últimos 8 commits
 
 ```
-adff8aa feat: scraping + pipeline Huétor Tájar (Granada)
-0995027 feat: añadir planta CS Huétor Tájar I (Granada)
-87551e7 state: regenerar tras limpieza completa
-12be702 state: regenerar tras limpieza completa
-ba8d374 docs: simplificar README y alinear Makefile operativo
-65e0267 ops: pausar cron semanal y Hermes Agent
-92ab748 feat: CSV de revisión manual de leads Tier A+B
-f410500 fix: ampliar SECTOR_MAP y usar notes/types para clasificar sector
+4f82314 feat: endpoint export CSV teleoperadora con argumento Paco
+fb11471 feat: dashboard con panel de cubiertas y búsqueda dirigida
+4ab8834 feat: scraper_custom_zone.py para búsqueda dirigida
+1953eb7 refactor: unificar catálogo plantas a data/plants.json
+c0edce0 norte: prospección pura, retirar Manolo, actualizar DECISIONS
+8d9489a data: actualizar captación sectorial Huétor Tájar
+ccd059d data: añadir índice Places Huétor Tájar
+f2a2b7f state: actualizar tras captación Huétor Tájar
 ```
 
 ## Volumen de código
 
-- Líneas Python totales: 4560
-- Scripts en scripts/: 21
+- Líneas Python totales: 4780
+- Scripts en scripts/: 22
 - Tests: 1
 
 ## Datos operativos
 
-- Leads en runs/: 430
+- Leads en runs/: 521
 - Plantas Soldelia activas: 34
 - SMS enviados (log local): 8
 
