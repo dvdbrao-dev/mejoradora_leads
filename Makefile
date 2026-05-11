@@ -11,7 +11,7 @@ DATA := $(ROOT)/data
 RUNS := $(ROOT)/runs
 INPUTS := $(ROOT)/inputs
 
-.PHONY: help install dashboard scrape pipeline enrich export review-csv status plants add-plant search-zone clean-logs backup test brief context decision
+.PHONY: help install dashboard scrape pipeline enrich export export-teleop review-csv status plants add-plant search-zone clean-logs backup test brief context decision
 
 help: ## Muestra este menu
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -50,6 +50,11 @@ export: ## Exporta cola de contacto Tier A y B con telefono
 		--with-phone \
 		--limit 100 \
 		--format both
+
+export-teleop: ## Exporta CSV para teleoperadora (PLANT=id opcional)
+	@curl -s "http://localhost:8001/api/export/teleop?plant_id=$(PLANT)&tier=A,B" \
+		-o outputs/teleop_$(shell date +%Y%m%d_%H%M).csv && \
+		echo "CSV guardado en outputs/"
 
 review-csv: ## Genera CSV de revision manual Tier A+B
 	source $(VENV) && python3 scripts/generate_review_csv.py

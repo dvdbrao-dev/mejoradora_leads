@@ -10,7 +10,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -145,6 +145,7 @@ def load_leads() -> list[dict[str, Any]]:
                 "phone": lead.get("phone") or "",
                 "address": lead.get("address") or lead.get("location", {}).get("address") or "",
                 "municipality": lead.get("municipality") or lead.get("location", {}).get("municipality") or "",
+                "plant_id": lead.get("plant_id") or "",
                 "plant_name": lead.get("plant_name") or "",
                 "plant_surplus_pct": to_float(lead.get("plant_surplus_pct")),
                 "distance_km": to_float(lead.get("distance_km")),
@@ -429,6 +430,86 @@ def dashboard_index() -> FileResponse:
     if not index.exists():
         raise HTTPException(status_code=404, detail="dashboard/index.html no encontrado")
     return FileResponse(index)
+
+
+@app.get("/api/export/teleop")
+def export_teleop(
+    plant_id: str | None = None,
+    tier: str = "A,B",
+) -> StreamingResponse:
+    """Genera y descarga CSV optimizado para teleoperadora."""
+    leads = load_leads()
+
+    tiers = {t.strip().upper() for t in tier.split(",") if t.strip()}
+    leads = [lead for lead in leads if lead.get("tier") in tiers]
+
+    if plant_id:
+        leads = [lead for lead in leads if lead.get("plant_id") == plant_id]
+
+    leads = [lead for lead in leads if str(lead.get("phone") or "").strip()]
+
+    leads.sort(
+        key=lambda lead: (
+            0 if lead.get("tier") == "A" else 1,
+            float(lead.get("distance_km") or 999),
+        )
+    )
+
+    paco_why_by_lead_id: dict[str, str] = {}
+    skip_files = {"enriched.json", "lead_status.json", "whatsapp_sent.json", "custom_searches.json"}
+    for fp in RUNS_DIR.glob("*.json"):
+        if fp.name in skip_files:
+            continue
+        try:
+            with fp.open("r", encoding="utf-8") as handle:
+                run = json.load(handle)
+        except Exception:
+            continue
+
+        lead_id = str(run.get("lead_id") or "")
+        if not lead_id:
+            continue
+        paco_why_by_lead_id[lead_id] = str((run.get("paco") or {}).get("why") or "")
+
+    import io
+
+    output = io.StringIO()
+    writer = csv.DictWriter(
+        output,
+        fieldnames=[
+            "Negocio",
+            "Sector",
+            "Telefono",
+            "Direccion",
+            "Distancia_km",
+            "Planta",
+            "Tier",
+            "Argumento",
+        ],
+    )
+    writer.writeheader()
+    for lead in leads:
+        writer.writerow(
+            {
+                "Negocio": lead.get("lead_name", ""),
+                "Sector": lead.get("sector", ""),
+                "Telefono": lead.get("phone", ""),
+                "Direccion": lead.get("address", ""),
+                "Distancia_km": lead.get("distance_km", ""),
+                "Planta": lead.get("plant_name", ""),
+                "Tier": lead.get("tier", ""),
+                "Argumento": paco_why_by_lead_id.get(str(lead.get("lead_id") or ""), ""),
+            }
+        )
+
+    output.seek(0)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    filename = f"teleop_{plant_id or 'todas'}_{timestamp}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 app.mount("/dashboard", StaticFiles(directory=DASHBOARD_DIR), name="dashboard")

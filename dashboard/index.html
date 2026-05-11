@@ -171,7 +171,7 @@
               <h2 class="text-lg font-semibold">Leads por cubierta</h2>
               <p id="active-scope" class="mt-1 text-sm text-slate-400">Todas las plantas activas</p>
             </div>
-            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
               <select id="filter-tier" class="rounded-md border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm">
                 <option value="">Todos tiers</option>
                 <option value="A">Tier A</option>
@@ -188,6 +188,7 @@
               </select>
               <input id="filter-sector" class="rounded-md border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm" placeholder="Sector">
               <input id="filter-municipality" class="rounded-md border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm" placeholder="Municipio">
+              <button class="btn btn-gold px-3 py-2 text-sm" onclick="exportTeleop()">Export teleop</button>
             </div>
           </div>
         </section>
@@ -427,7 +428,7 @@
             <div class="mt-3 grid grid-cols-3 gap-2">
               <button class="btn btn-teal" onclick="searchPlant('${escapeHTML(plant.plant_id)}')">Buscar</button>
               <button class="btn btn-gold" onclick="viewPlantLeads('${escapeHTML(plant.plant_id)}')">Ver leads</button>
-              <button class="btn btn-dark" disabled title="Próximamente">Export teleop</button>
+              <button class="btn btn-dark" onclick="exportTeleop('${escapeHTML(plant.plant_id)}')">Export teleop</button>
             </div>
           </article>
         `;
@@ -671,6 +672,15 @@
       } catch (error) {
         box.innerHTML = `<p class="text-rose-200">${escapeHTML(error.message)}</p>`;
       }
+    }
+
+    function exportTeleop(plantId = "") {
+      const effectivePlantId = plantId || selectedPlantId;
+      const params = new URLSearchParams({ tier: "A,B" });
+      if (effectivePlantId) {
+        params.set("plant_id", effectivePlantId);
+      }
+      window.open(`${ROOT_API}/export/teleop?${params.toString()}`);
     }
 
     function openSidebarMobile() {
