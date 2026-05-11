@@ -57,3 +57,27 @@ variantes de copy por lead y luego tirando todo al SMS.
 **Consecuencia:** Pendiente ejecutar (Prompt Codex 3).
 
 ---
+
+## 2026-05-11 — Nuevo norte: prospección pura
+
+**Decisión:** La herramienta pasa a modo prospección. 3 contratos cerrados externamente. Habilitado iterar features de búsqueda y exportación.
+**Razón:** El objetivo comercial manual está cumplido. Ahora David necesita volumen de leads cualificados para una teleoperadora que consiga visitas.
+**Consecuencia:** Se habilitan features de búsqueda dirigida por cubierta, exportación teleoperadora y mejora de clasificación con Sonnet 4.6.
+
+---
+
+## 2026-05-11 — Retirar agente Manolo
+
+**Decisión:** Mover agents/manolo/ a legacy/agents/manolo/. Eliminar la fase Manolo de scripts/route.py. El pipeline queda: Paco clasifica → fin.
+**Razón:** Ya no hay outreach digital (WhatsApp/SMS). La teleoperadora llama por teléfono con un argumento corto generado por un nuevo agente "Pitcher" que sustituirá a Manolo en una fase posterior.
+**Consecuencia:** route.py se simplifica. Tier A y B se guardan directamente como aprobados tras Paco sin generar mensajes. Manolo queda en legacy/.
+
+---
+
+## 2026-05-11 — Sonnet 4.6 como modelo principal del pipeline
+
+**Decisión:** Migrar Paco de gpt-4o-mini a claude-sonnet-4-6 vía API Anthropic. Nueva variable de entorno ANTHROPIC_API_KEY para la API key dedicada con 100€ de presupuesto.
+**Razón:** gpt-4o-mini produce falsos negativos en leads ambiguos. Sonnet 4.6 mejora clasificación a coste marginal (~0.006€/lead). Con 100€ caben >15.000 clasificaciones.
+**Consecuencia:** route.py usa call_claude_agent para Paco en todos los tiers. Se mantiene call_openai_agent como fallback si ANTHROPIC_API_KEY no está definida. Se añade tracking de coste por lead en el run JSON.
+
+---

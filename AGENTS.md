@@ -10,11 +10,12 @@ Lanjarón (Andalucía). NO es un SaaS, NO se va a licenciar, es herramienta
 INTERNA para el negocio comercial de David. Doble producto: cambio de 
 comercializadora + PPA solar Soldelia para empresas cercanas a las 33 plantas.
 
-## Norte estratégico (no negociable hasta tener 3 contratos firmados)
+## Norte estratégico (actualizado 2026-05-11)
 
-1. Cerrar 3 contratos manualmente vía llamada y visita presencial.
-2. Solo entonces automatizar lo que dolió hacer a mano.
-3. NO añadir features nuevas. NO licenciar. NO escalar prematuramente.
+1. 3 contratos cerrados (se gestionan fuera de esta herramienta).
+2. Esta herramienta es SOLO para prospección: buscar leads, clasificarlos, exportar lista para teleoperadora.
+3. NO gestionar contratos aquí. NO CRM. NO automatizar envíos.
+4. Prioridad: añadir cubiertas nuevas fácilmente, dirigir búsqueda por cubierta, exportar CSV teleoperadora.
 
 ## Reglas para asistentes IA
 

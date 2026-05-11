@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """
 route.py — Orquestador de agentes Openfang
-Toma leads limpios y los pasa por el pipeline: Paco → Manolo
+Toma leads limpios y los pasa por el pipeline: Paco
 Requiere: pip install openai
 """
 
 import json
 import argparse
 import os
-import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Literal
 from urllib import error as urlerror
 from urllib import request as urlrequest
 
@@ -29,13 +27,6 @@ RUNS_DIR = BASE_DIR / "runs"
 
 OPENAI_MODEL = "gpt-4o-mini"
 CLAUDE_MODEL = "claude-sonnet-4-20250514"
-FORBIDDEN_MANOLO_PATTERNS = (
-    r"surplus(?:_pct)?",
-    r"excedent\w*",
-    r"excedente\w*",
-    r"porcent\w*",
-    r"%",
-)
 
 
 def parse_json_response(raw: str) -> dict:
@@ -114,68 +105,7 @@ def call_claude_agent(agent_name: str, user_message: str) -> dict:
     return parse_json_response("\n".join(text_blocks))
 
 
-def call_manolo_agent(
-    agent_name: str,
-    user_message: str,
-    tier: str,
-    model: Literal["claude", "gpt"] = "claude",
-) -> tuple[str, dict]:
-    if model == "claude":
-        print(f"  🤖 [Anthropic:{CLAUDE_MODEL}] Llamando a manolo...")
-        return "claude", call_claude_agent(agent_name, user_message)
-
-    if model == "gpt":
-        print(f"  🤖 [OpenAI:{OPENAI_MODEL}] Llamando a manolo...")
-        return "gpt", call_openai_agent(agent_name, user_message)
-
-    return model, {"error": f"Modelo inválido para Manolo: {model}", "tier": tier}
-
-
-def choose_manolo_model(tier: str) -> str:
-    return "claude" if tier == "A" else "gpt"
-
-
-def sanitize_text_for_manolo(text: str) -> str:
-    clean = text or ""
-    # Remueve porcentajes numéricos y cualquier fragmento con términos sensibles.
-    clean = re.sub(r"\b\d+(?:[.,]\d+)?\s*%", "", clean, flags=re.IGNORECASE)
-    clean = re.sub(
-        r"[^,.;:\n]*?(?:surplus_pct|surplus|excedente|15\.27|%)[^,.;:\n]*",
-        " ",
-        clean,
-        flags=re.IGNORECASE,
-    )
-    for pattern in FORBIDDEN_MANOLO_PATTERNS:
-        clean = re.sub(pattern, " ", clean, flags=re.IGNORECASE)
-    return " ".join(clean.split())
-
-
-def has_forbidden_manolo_term(text: str) -> bool:
-    return any(re.search(pattern, text or "", flags=re.IGNORECASE) for pattern in FORBIDDEN_MANOLO_PATTERNS)
-
-
-def sanitize_payload_for_manolo(value):
-    if isinstance(value, dict):
-        cleaned = {}
-        for key, item in value.items():
-            key_text = str(key)
-            if has_forbidden_manolo_term(key_text):
-                continue
-            sanitized_item = sanitize_payload_for_manolo(item)
-            if isinstance(sanitized_item, str):
-                sanitized_item = sanitized_item.strip()
-                if not sanitized_item:
-                    continue
-            cleaned[key_text] = sanitized_item
-        return cleaned
-    if isinstance(value, list):
-        return [sanitize_payload_for_manolo(item) for item in value]
-    if isinstance(value, str):
-        return sanitize_text_for_manolo(value)
-    return value
-
-
-def run_pipeline(lead: dict) -> dict:
+def run_pipeline(lead: dict, save: bool = True) -> dict:
     lead_name = lead.get("lead_name", "Lead desconocido")
     print(f"\n📋 Procesando: {lead_name}")
     print("─" * 50)
@@ -201,66 +131,23 @@ def run_pipeline(lead: dict) -> dict:
 
     if tier == "DISCARD":
         run["status"] = "descartado_por_paco"
-        save_run(run)
+        if save:
+            save_run(run)
         print("  ❌ Paco descartó el lead")
         return run
 
     if tier == "C":
         run["status"] = "tier_c_en_espera"
-        save_run(run)
+        if save:
+            save_run(run)
         print("  📦 Tier C — guardado sin procesar")
         return run
 
-    # Paso 2: Manolo genera mensajes usando el análisis de Paco
-    sanitized_lead_name = sanitize_text_for_manolo(str(lead.get("lead_name", "")))
-    sanitized_sector = sanitize_text_for_manolo(str(lead.get("sector", "")))
-    sanitized_address = sanitize_text_for_manolo(str(lead.get("address", "")))
-    sanitized_phone = sanitize_text_for_manolo(str(lead.get("phone", "no disponible")))
-    sanitized_plant_name = sanitize_text_for_manolo(str(lead.get("plant_name", "planta solar cercana")))
-    sanitized_distance = sanitize_text_for_manolo(str(lead.get("distance_km", "desconocida")))
-    sanitized_power_kw = sanitize_text_for_manolo(str(lead.get("plant_power_kw", "desconocida")))
-    sanitized_paco_why = sanitize_text_for_manolo(str(paco_result.get("why", "")))
-
-    manolo_msg = f"""Escribe 3 variantes de mensaje (anti_venta, dolor_perdida, 
-autoridad) para este lead.
-
-Lead:
-- Nombre: {sanitized_lead_name}
-- Sector: {sanitized_sector}
-- Dirección: {sanitized_address}
-- Teléfono: {sanitized_phone}
-
-Datos de la planta solar más cercana:
-- Planta: {sanitized_plant_name}
-- Distancia: {sanitized_distance} km
-- Potencia: {sanitized_power_kw} kW
-
-Contexto comercial de Paco (limpio): {sanitized_paco_why}
-
-Genera exactamente 3 variantes. JSON válido y completo."""
-    manolo_model = choose_manolo_model(tier)
-    run["manolo_model"] = manolo_model
-    _, manolo_result = call_manolo_agent(
-        "manolo",
-        manolo_msg,
-        tier,
-        model=manolo_model,
-    )
-    run["manolo"] = manolo_result
-
-    # Manolo puede devolver array de variantes o un solo objeto
-    if isinstance(manolo_result, list):
-        msgs = manolo_result
-    else:
-        msgs = [manolo_result]
-
-    print(f"  ✍️  Manolo → {len(msgs)} variante(s) generadas")
-
     run["status"] = "aprobado"
-    status_icon = "✅"
-
     run["finished_at"] = datetime.now(timezone.utc).isoformat()
-    print(f"  {status_icon} Pipeline completado — Tier {tier} | {run['status']}")
+    if save:
+        save_run(run)
+    print(f"  ✅ Pipeline completado — Tier {tier} | {run['status']}")
 
     return run
 
@@ -268,7 +155,6 @@ Genera exactamente 3 variantes. JSON válido y completo."""
 def save_run(run: dict):
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
-    (OUTPUTS_DIR / "messages").mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     lead_slug = run.get("lead_id", "unknown")
@@ -277,12 +163,6 @@ def save_run(run: dict):
     run_path = RUNS_DIR / f"{lead_slug}_{timestamp}.json"
     with open(run_path, "w", encoding="utf-8") as f:
         json.dump(run, f, ensure_ascii=False, indent=2)
-
-    # Mensajes por separado
-    if "manolo" in run:
-        msg_path = OUTPUTS_DIR / "messages" / f"{lead_slug}_{timestamp}.json"
-        with open(msg_path, "w", encoding="utf-8") as f:
-            json.dump(run["manolo"], f, ensure_ascii=False, indent=2)
 
     print(f"  💾 Run guardado en {run_path}")
     return run_path
@@ -307,10 +187,8 @@ def main():
 
     results = []
     for lead in leads:
-        run = run_pipeline(lead)
+        run = run_pipeline(lead, save=not args.dry_run)
         results.append(run)
-        if not args.dry_run and run.get("status") != "descartado_por_paco":
-            save_run(run)
 
     # Resumen
     print("\n" + "═" * 50)
