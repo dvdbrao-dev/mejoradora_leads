@@ -81,3 +81,11 @@ variantes de copy por lead y luego tirando todo al SMS.
 **Consecuencia:** route.py usa call_claude_agent para Paco en todos los tiers. Se mantiene call_openai_agent como fallback si ANTHROPIC_API_KEY no está definida. Se añade tracking de coste por lead en el run JSON.
 
 ---
+
+## 2026-05-11 — Unificar catálogo de plantas
+
+**Decisión:** data/plants.json pasa a ser el único catálogo oficial de plantas. data/plants_soldelia.json se elimina por duplicado.
+**Razón:** Había dos ficheros con el mismo propósito y referencias repartidas entre scripts, Makefile y dashboard.
+**Consecuencia:** Las rutas operativas apuntan a data/plants.json. Las nuevas cubiertas se añaden con scripts/manage_plants.py add o make add-plant.
+
+---

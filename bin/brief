@@ -14,7 +14,7 @@ LINES_PY=$(find . -name "*.py" -not -path "./.git/*" -not -path "*/.venv/*" -not
 NUM_SCRIPTS=$(ls scripts/*.py scripts/*.sh 2>/dev/null | wc -l | tr -d ' ')
 NUM_TESTS=$(ls tests/*.py 2>/dev/null | wc -l | tr -d ' ')
 NUM_LEADS=$(ls runs/*.json 2>/dev/null | grep -v -E "enriched|status|whatsapp|custom" | wc -l | tr -d ' ')
-NUM_PLANTS=$(grep -c '"plant_id"' data/plants_soldelia.json 2>/dev/null || echo "?")
+NUM_PLANTS=$(grep -c '"plant_id"' data/plants.json 2>/dev/null || echo "?")
 SMS_LOG_COUNT=$(wc -l < data/logs/sms_sent.jsonl 2>/dev/null | tr -d ' ' || echo "0")
 
 # Git

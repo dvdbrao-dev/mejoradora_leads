@@ -27,7 +27,7 @@ from event_log import EventLog, FUNNEL_ORDER
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard_v2"])
 
 RUNS_DIR = REPO_ROOT / "runs"
-PLANTS_PATH = REPO_ROOT / "data" / "plants_soldelia.json"
+PLANTS_PATH = REPO_ROOT / "data" / "plants.json"
 EVENT_LOG = EventLog(REPO_ROOT / "data" / "logs" / "lead_events.jsonl")
 COMMISSION_PER_KWH = 0.00639
 RUN_SKIP_FILES = {"enriched.json", "lead_status.json", "whatsapp_sent.json", "custom_searches.json"}

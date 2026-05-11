@@ -728,6 +728,29 @@
       "target_min_consumption_kwh_year": 30000,
       "community_name": "CS Albacete I",
       "notes": "nave:Indoorland | comision:0.00639 | priority:high"
+    },
+    {
+      "plant_id": "cs_huetor_tajar_i",
+      "name": "CS Huétor Tájar I",
+      "lat": 37.1959727,
+      "lon": -4.0243311,
+      "radio_km": 5.0,
+      "status": "active",
+      "created_at": "2026-04-28T18:14:48Z",
+      "updated_at": "2026-04-28T18:14:48Z",
+      "address": "C. Irlanda 109-111, 18360 Huétor Tájar, Granada",
+      "municipality": "Huétor Tájar",
+      "province": "Granada",
+      "autonomous_community": "Andalucía",
+      "postal_code": "18360",
+      "power_kw": null,
+      "surplus_pct": 1.0,
+      "surplus_percentage": 1.0,
+      "solar_price_eur_kwh": 0.0949,
+      "energy_available_kwh": null,
+      "target_min_consumption_kwh_year": 30000,
+      "community_name": "CS Huétor Tájar I",
+      "notes": "planta_cercana_david | comision:0.00639 | priority:high"
     }
   ]
 }

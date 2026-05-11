@@ -27,7 +27,7 @@ if [[ -f "$HOME/.env.mejoradora" ]]; then
   source "$HOME/.env.mejoradora"
 fi
 
-PLANTS_PATH="${1:-data/plants_soldelia.json}"
+PLANTS_PATH="${1:-data/plants.json}"
 API_KEY="${2:-${GOOGLE_PLACES_API_KEY:-}}"
 RADIUS="${3:-5000}"
 MAX_PER_PLANT="${4:-30}"

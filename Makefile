@@ -11,7 +11,7 @@ DATA := $(ROOT)/data
 RUNS := $(ROOT)/runs
 INPUTS := $(ROOT)/inputs
 
-.PHONY: help install dashboard scrape pipeline enrich export review-csv status plants clean-logs backup test brief context decision
+.PHONY: help install dashboard scrape pipeline enrich export review-csv status plants add-plant clean-logs backup test brief context decision
 
 help: ## Muestra este menu
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -28,7 +28,7 @@ dashboard: ## Arranca el dashboard FastAPI en puerto 8001
 
 scrape: ## Scraping solar con radio 5000m (plantas Soldelia activas)
 	source $(VENV) && python3 scripts/scraper_solar.py \
-		--plants data/plants_soldelia.json \
+		--plants data/plants.json \
 		--api-key $$GOOGLE_PLACES_API_KEY \
 		--radius 5000 \
 		--max-per-plant 30 \
@@ -65,9 +65,12 @@ print('TOTAL:', sum(tiers.values()))"
 
 plants: ## Lista plantas Soldelia configuradas
 	source $(VENV) && python3 scripts/manage_plants.py list 2>/dev/null || \
-		python3 -c "import json; plants=json.load(open('data/plants_soldelia.json')); \
+		python3 -c "import json; data=json.load(open('data/plants.json')); plants=data.get('plants', data); \
 		[print(f\"{p['plant_id']:30} {p['status']:10} {p.get('priority','?'):8} CR:{p.get('coeficiente_reparto',0):.0%}\") for p in plants]" \
-		2>/dev/null || echo "plants_soldelia.json aun no existe"
+		2>/dev/null || echo "plants.json aun no existe"
+
+add-plant: ## Añade una cubierta nueva (usar con ARGS="--name X --lat Y --lon Z")
+	source $(VENV) && python3 scripts/manage_plants.py add $(ARGS)
 
 clean-logs: ## Borra logs de mas de 30 dias
 	find $(DATA)/logs -name "*.log" -mtime +30 -delete 2>/dev/null || true
