@@ -89,3 +89,14 @@ variantes de copy por lead y luego tirando todo al SMS.
 **Consecuencia:** Las rutas operativas apuntan a data/plants.json. Las nuevas cubiertas se añaden con scripts/manage_plants.py add o make add-plant.
 
 ---
+
+## 2026-05-11 — Ampliar catálogo a 54 plantas
+
+**Decisión:** Merge de 20 plantas nuevas y actualización de 10 existentes
+desde Excel cubiertas (Reazziona, Acciona, Soldelia).
+**Razón:** David tiene acceso a cubiertas adicionales para prospectar.
+**Consecuencia:** Catálogo pasa de 34 a 54 plantas activas. Cobertura
+ampliada a Aragón, Cataluña, Comunitat Valenciana, Castilla y León,
+Extremadura y nuevas zonas de Castilla-La Mancha.
+
+---
